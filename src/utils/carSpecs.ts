@@ -76,19 +76,25 @@ export const carSpecsDB: CarSpec[] = [
   { brand: 'audi', model: 'q5', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1984', co2: '35' }, // 50 TFSI e
   
   // --- BMW ---
-  { brand: 'bmw', model: 'serie 1', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1496', co2: '116' }, // 116d
-  { brand: 'bmw', model: 'serie 1', year: 2020, fuelType: 'Gasolina', engineCapacity: '1499', co2: '129' }, // 118i
-  { brand: 'bmw', model: 'serie 3', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '1998', co2: '31' }, // 330e
-  { brand: 'bmw', model: 'serie 5', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1995', co2: '118' }, // 520d
+  { brand: 'bmw', model: '116', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1496', co2: '116' }, // 116d
+  { brand: 'bmw', model: '118', year: 2020, fuelType: 'Gasolina', engineCapacity: '1499', co2: '129' }, // 118i
+  { brand: 'bmw', model: '320', year: 2021, fuelType: 'Gasolina', engineCapacity: '1998', co2: '130' }, // 320i
+  { brand: 'bmw', model: '330', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '1998', co2: '31' }, // 330e
+  { brand: 'bmw', model: '520', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1995', co2: '118' }, // 520d
+  { brand: 'bmw', model: '530', year: 2019, fuelType: 'Gasolina', engineCapacity: '1998', co2: '133' }, // 530i
   { brand: 'bmw', model: 'x1', year: 2023, fuelType: 'Híbrido Plug-in', engineCapacity: '1499', co2: '17' }, // xDrive25e
   { brand: 'bmw', model: 'x5', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '2998', co2: '27' }, // xDrive45e
 
   // --- MERCEDES-BENZ ---
-  { brand: 'mercedes-benz', model: 'classe a', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1461', co2: '114' }, // A 180 d
-  { brand: 'mercedes-benz', model: 'classe a', year: 2020, fuelType: 'Híbrido Plug-in', engineCapacity: '1332', co2: '22' }, // A 250 e
-  { brand: 'mercedes-benz', model: 'classe c', year: 2022, fuelType: 'Gasóleo', engineCapacity: '1992', co2: '120' }, // C 220 d
-  { brand: 'mercedes-benz', model: 'classe c', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1999', co2: '14' }, // C 300 e
-  { brand: 'mercedes-benz', model: 'glc', year: 2023, fuelType: 'Híbrido Plug-in', engineCapacity: '1999', co2: '12' }, // GLC 300 e
+  { brand: 'mercedes-benz', model: 'a 180', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1461', co2: '114' },
+  { brand: 'mercedes-benz', model: 'a 250', year: 2020, fuelType: 'Híbrido Plug-in', engineCapacity: '1332', co2: '22' },
+  { brand: 'mercedes-benz', model: 'c 220', year: 2022, fuelType: 'Gasóleo', engineCapacity: '1992', co2: '120' },
+  { brand: 'mercedes-benz', model: 'c 300', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1999', co2: '14' },
+  { brand: 'mercedes-benz', model: 'glc 300', year: 2023, fuelType: 'Híbrido Plug-in', engineCapacity: '1999', co2: '12' },
+  { brand: 'mercedes-benz', model: 's 350', year: 2015, fuelType: 'Gasóleo', engineCapacity: '2987', co2: '146' }, // S 350 BlueTEC
+  { brand: 'mercedes-benz', model: 's 400', year: 2015, fuelType: 'Híbrido', engineCapacity: '3498', co2: '147' }, // S 400 h
+  { brand: 'mercedes-benz', model: 's 500', year: 2015, fuelType: 'Gasolina', engineCapacity: '4663', co2: '199' }, // S 500 V8
+  { brand: 'mercedes-benz', model: 's 63 amg', year: 2015, fuelType: 'Gasolina', engineCapacity: '5461', co2: '237' }, // S 63 AMG V8 Biturbo
   
   // --- PEUGEOT ---
   { brand: 'peugeot', model: '208', year: 2021, fuelType: 'Gasolina', engineCapacity: '1199', co2: '118' }, // PureTech 100
