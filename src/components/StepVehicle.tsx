@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2 } from 'lucide-react';
+import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2, Lock } from 'lucide-react';
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
 import { lookupCarSpec } from '../utils/carSpecs';
@@ -206,16 +206,19 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   };
 
   // Render a mobile-friendly text input field
-  const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "", rightElement?: React.ReactNode) => (
+  const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "", rightElement?: React.ReactNode, readOnly: boolean = false) => (
     <div className="flex flex-col gap-1.5 mb-4 relative">
-      <label className="text-sm font-medium text-zinc-400 ml-1">{label}</label>
+      <label className="text-sm font-medium text-zinc-400 ml-1">
+        {label} {readOnly && <Lock size={12} className="inline ml-1 text-blue-400" />}
+      </label>
       <div className="relative w-full">
         <input
           type={type}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={readOnly ? undefined : (e) => onChange(e.target.value)}
+          readOnly={readOnly}
           placeholder={placeholder}
-          className="w-full bg-black/20 border border-white/10 rounded-2xl px-4 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-lg"
+          className={`w-full bg-black/20 border border-white/10 rounded-2xl px-4 py-4 ${readOnly ? 'text-blue-400 bg-blue-900/10 cursor-not-allowed' : 'text-white'} placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-lg`}
         />
         {rightElement && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -252,10 +255,15 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         <p className="text-zinc-400">Insira as informações básicas do veículo para a simulação.</p>
       </div>
 
-      {/* VIN / License Plate Search Area */}
-      <div className="mb-8 p-5 bg-blue-600/10 border border-blue-500/20 rounded-2xl relative overflow-hidden group">
+      {/* VIN / License Plate Search Area - PREMIUM PAYWALL */}
+      <div className="mb-8 p-5 bg-gradient-to-br from-blue-900/40 to-black/40 border border-blue-500/30 rounded-2xl relative overflow-hidden group">
         <div className="flex flex-col gap-3 relative z-10">
-          <label className="text-sm font-semibold text-blue-400">Preenchimento Automático</label>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-semibold text-blue-400">Pesquisa Automática</label>
+            <span className="bg-gradient-to-r from-amber-200 to-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(251,191,36,0.5)]">
+              <Lock size={10} /> Premium
+            </span>
+          </div>
           <div className="flex gap-2 w-full">
             <input
               type="text"
@@ -265,19 +273,19 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
                 setVinError('');
               }}
               placeholder="Matrícula ou Nº Quadro (VIN)"
-              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 uppercase font-medium"
+              className="flex-1 bg-black/60 border border-blue-500/20 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-400 uppercase font-medium shadow-inner"
               onKeyDown={(e) => e.key === 'Enter' && handleVinSearch()}
             />
             <button
               onClick={handleVinSearch}
               disabled={isSearchingVin || !vinQuery.trim()}
-              className="bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-zinc-500 text-white p-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center min-w-[56px]"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-white/10 disabled:to-white/10 disabled:text-zinc-500 text-white px-4 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center min-w-[56px] gap-2 font-medium"
             >
-              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />}
+              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span className="hidden sm:inline">Desbloquear</span></>}
             </button>
           </div>
           {vinError && <span className="text-red-400 text-sm mt-1">{vinError}</span>}
-          <p className="text-xs text-zinc-400 mt-1">Carrega marca, modelo, cc e CO2 automaticamente.</p>
+          <p className="text-xs text-zinc-400 mt-1">Obtenha os dados exatos (Cilindrada, CO2, etc) diretamente da base de dados Europeia por <strong className="text-white">2,99€</strong>.</p>
         </div>
         <div className="absolute -right-10 -bottom-10 opacity-10 blur-xl group-hover:opacity-20 transition-opacity pointer-events-none">
            <Wand2 size={120} className="text-blue-500" />
@@ -316,7 +324,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, 
           "number", 
           "Ex: 1995",
-          availableSpecs.length > 0 ? (
+          availableSpecs.length > 0 && !autoFilled ? (
             <button
               onClick={() => setActiveSheet('engineCapacity')}
               className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-colors flex items-center gap-2 text-sm font-medium"
@@ -325,10 +333,11 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               <Wand2 size={18} />
               <span className="hidden sm:inline">Auto</span>
             </button>
-          ) : undefined
+          ) : undefined,
+          autoFilled
         )}
 
-        {renderInput("Emissões CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120")}
+        {renderInput("Emissões CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120", undefined, autoFilled)}
         
         {autoFilled && availableSpecs.length === 1 && (
           <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 mb-4 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
