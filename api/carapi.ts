@@ -100,14 +100,21 @@ export default async function handler(req: any, res: any) {
     
     const data = await apiRes.json();
     
-    // Map CarAPI response to our format
+    // Map CarAPI response to our format - Robust mapping for both VIN and Plate endpoints
+    const make = data?.make?.name || data?.make || '';
+    const model = data?.model?.name || data?.model || '';
+    const year = data?.year?.year?.toString() || data?.year?.toString() || '';
+    const fuelTypeNode = data?.engine?.fuel_type || data?.fuel_type || 'Gasolina';
+    const engineCc = data?.engine?.displacement_cc?.toString() || data?.engine?.displacement?.toString() || '';
+    const co2 = data?.engine?.co2_emissions?.toString() || data?.co2_emissions?.toString() || data?.co2?.toString() || '';
+
     return res.status(200).json({
-      make: data?.make?.name || '',
-      model: data?.model?.name || '',
-      year: data?.year?.year?.toString() || '',
-      fuel_type: data?.engine?.fuel_type || 'Gasolina',
-      engine_cc: data?.engine?.displacement_cc?.toString() || '',
-      co2: data?.engine?.co2_emissions?.toString() || ''
+      make,
+      model,
+      year,
+      fuel_type: fuelTypeNode,
+      engine_cc: engineCc,
+      co2
     });
 
   } catch (error: any) {
