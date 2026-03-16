@@ -132,7 +132,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     } else {
       setAvailableSpecs([]);
     }
-  }, [data.brand, data.model, data.year]);
+  }, [data.brand, data.model, data.year, data.fuelType]);
 
   const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2 && data.acceptedTerms;
 
