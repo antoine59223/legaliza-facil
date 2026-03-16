@@ -96,14 +96,14 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState('');
 
-  if (!isOpen) return null;
-
   // React hook to auto-initiate checkout if directCheckoutProductId is provided
   React.useEffect(() => {
     if (isOpen && directCheckoutProductId && !clientSecret && !isInitializing && !error) {
       handleSelectPlan(directCheckoutProductId);
     }
   }, [isOpen, directCheckoutProductId, clientSecret, isInitializing, error]);
+
+  if (!isOpen) return null;
 
   const handleSelectPlan = async (productId: ProductId) => {
     setSelectedProduct(productId);
