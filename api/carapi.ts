@@ -52,17 +52,40 @@ export default async function handler(req: any, res: any) {
     }
 
     // Real API Request to CarAPI
-    // (You would adapt URL and headers based on exact CarAPI docs you purchased)
+    // Step 1: Login to get JWT Bearer Token
+    const authRes = await fetch("https://carapi.app/api/auth/login", {
+      method: 'POST',
+      headers: {
+        'Accept': 'text/plain',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "api_token": token,
+        "api_secret": secret
+      })
+    });
+
+    if (!authRes.ok) {
+      const errText = await authRes.text();
+      console.error('CarAPI Auth Error:', errText);
+      throw new Error(`Falha de autenticação na API de Veículos (Status: ${authRes.status})`);
+    }
+
+    const jwtValidToken = await authRes.text();
+
+    // Step 2: Use the JWT to fetch the VIN or License Plate
     const headers = { 
-      'Authorization': `Bearer ${token}` 
-      // If Secret is needed via header or query, adapt here
+      'Authorization': `Bearer ${jwtValidToken}`,
+      'Accept': 'application/json'
     };
     
-    // Attempting query (Assuming CarAPI handles both VIN and EU license plates via a generic /vehicles endpoint)
-    // For demo accuracy, we hit their endpoint. Adjust this endpoint to the correct one from their docs.
     const apiRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
     
-    if (!apiRes.ok) throw new Error(`Falha ao comunicar com CarAPI (Status: ${apiRes.status})`);
+    if (!apiRes.ok) {
+      const errText = await apiRes.text();
+      console.error('CarAPI Fetch Error:', errText);
+      throw new Error(`Veículo não encontrado na base de dados (Status: ${apiRes.status})`);
+    }
     
     const data = await apiRes.json();
     
