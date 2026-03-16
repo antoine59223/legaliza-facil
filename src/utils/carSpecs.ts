@@ -41,30 +41,45 @@ export const carSpecsDB: CarSpec[] = [
     fuelType: 'Gasolina',
     engineCapacity: '999',
     co2: '100'
+  },
+  {
+    brand: 'bmw',
+    model: 'm4',
+    year: 2023,
+    fuelType: 'Gasolina',
+    engineCapacity: '2993', // Competition
+    co2: '228'
+  },
+  {
+    brand: 'bmw',
+    model: 'm4',
+    year: 2023,
+    fuelType: 'Gasolina',
+    engineCapacity: '2993', // xDrive
+    co2: '230'
+  },
+  {
+    brand: 'bmw',
+    model: 'm4',
+    year: 2023,
+    fuelType: 'Gasolina',
+    engineCapacity: '2993', // CSL
+    co2: '222'
   }
 ];
 
 // Helper to look up specs
-export function lookupCarSpec(brand: string, model: string, year: string): Partial<CarSpec> | null {
-  if (!brand || !model || !year) return null;
+export function lookupCarSpec(brand: string, model: string, year: string): CarSpec[] {
+  if (!brand || !model || !year) return [];
   
   const b = brand.toLowerCase().replace('-', '').trim();
   const m = model.toLowerCase().replace('-', '').trim();
   const y = parseInt(year);
 
-  const match = carSpecsDB.find(car => 
-    car.brand.replace('-', '') === b && 
-    car.model.replace('-', '') === m && 
+  // Return ALL variants that match the brand, model, and year range
+  return carSpecsDB.filter(car => 
+    car.brand.toLowerCase().replace('-', '') === b && 
+    car.model.toLowerCase().replace('-', '') === m && 
     (car.year === y || Math.abs(car.year - y) <= 2) // allow +/- 2 years drift
   );
-
-  if (match) {
-     return {
-        fuelType: match.fuelType,
-        engineCapacity: match.engineCapacity,
-        co2: match.co2
-     };
-  }
-
-  return null;
 }

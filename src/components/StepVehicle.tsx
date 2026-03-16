@@ -13,8 +13,9 @@ interface StepProps {
 const FUEL_TYPES: FuelType[] = ['Gasolina', 'Gasóleo', 'Híbrido', 'Híbrido Plug-in', 'Elétrico'];
 
 export default function StepVehicle({ data, updateData, onNext }: StepProps) {
-  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | 'engineCapacity' | null>(null);
   const [autoFilled, setAutoFilled] = useState(false);
+  const [availableSpecs, setAvailableSpecs] = useState<Partial<VehicleData>[]>([]);
 
   const BRANDS = ['Audi', 'BMW', 'Mercedes-Benz', 'Porsche', 'Renault', 'Volkswagen', 'Tesla', 'Peugeot', 'Toyota', 'Seat', 'Skoda', 'Volvo', 'Ford'].sort();
   const MODELS_BY_BRAND: Record<string, string[]> = {
@@ -37,15 +38,24 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
 
   useEffect(() => {
     if (data.brand.length > 2 && data.model.length >= 2 && data.year.length === 4) {
-      const spec = lookupCarSpec(data.brand, data.model, data.year);
-      if (spec && (!data.engineCapacity || autoFilled)) {
+      const specs = lookupCarSpec(data.brand, data.model, data.year);
+      setAvailableSpecs(specs.map(s => ({
+        engineCapacity: s.engineCapacity,
+        co2: s.co2,
+        fuelType: s.fuelType as FuelType
+      })));
+      
+      // If there's exactly one match and we haven't picked an engine yet, auto-fill it
+      if (specs.length === 1 && !data.engineCapacity) {
          updateData({
-            engineCapacity: spec.engineCapacity,
-            co2: spec.co2,
-            fuelType: spec.fuelType as FuelType,
+            engineCapacity: specs[0].engineCapacity,
+            co2: specs[0].co2,
+            fuelType: specs[0].fuelType as FuelType,
          });
          setAutoFilled(true);
       }
+    } else {
+      setAvailableSpecs([]);
     }
   }, [data.brand, data.model, data.year]);
 
@@ -100,15 +110,20 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         
         {renderSelectTrigger("Année d'immatriculation", data.year, "Année", () => setActiveSheet('year'))}
         
+        {availableSpecs.length > 1 ? (
+          renderSelectTrigger("Cylindrée (cc)", data.engineCapacity, "Sélectionner la motorisation", () => setActiveSheet('engineCapacity'), !data.year)
+        ) : (
+          renderInput("Cylindrée (cc)", data.engineCapacity, (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, "number", "Ex: 1995")
+        )}
+
         {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
 
-        {renderInput("Cylindrée (cc)", data.engineCapacity, (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, "number", "Ex: 1995")}
         {renderInput("Émissions CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120")}
         
-        {autoFilled && (
+        {autoFilled && availableSpecs.length === 1 && (
           <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 mb-4 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
             <Wand2 size={16} />
-            Cylindrée et CO2 pré-remplis automatiquement pour ce modèle !
+            Motorisation unique détectée, pré-remplie automatiquement !
           </div>
         )}
       </div>
@@ -196,7 +211,51 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         </div>
       </BottomSheet>
 
-      {/* 4. Fuel Type Sheet */}
+      {/* 4. Engine Capacity Sheet */}
+      <BottomSheet isOpen={activeSheet === 'engineCapacity'} onClose={() => setActiveSheet(null)} title="Cylindrée (Motorisation)">
+        <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
+          {availableSpecs.map((spec, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                updateData({ 
+                  engineCapacity: spec.engineCapacity,
+                  co2: spec.co2,
+                  fuelType: spec.fuelType as FuelType
+                });
+                setActiveSheet(null);
+                setAutoFilled(true);
+              }}
+              className={`w-full text-left px-5 py-4 rounded-xl transition-all border border-white/5 flex justify-between items-center ${
+                data.engineCapacity === spec.engineCapacity && data.co2 === spec.co2
+                ? 'bg-blue-600/20 border-blue-500/50 text-white' 
+                : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+              }`}
+            >
+              <div className="flex flex-col">
+                <span className="font-semibold text-lg">{spec.engineCapacity} cc</span>
+                <span className="text-sm opacity-60">{spec.fuelType}</span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="font-medium text-blue-400">{spec.co2} g/km</span>
+                <span className="text-xs opacity-50 uppercase tracking-widest">CO2</span>
+              </div>
+            </button>
+          ))}
+          <div className="h-px bg-white/10 my-2"></div>
+          <button
+            onClick={() => {
+              setActiveSheet(null);
+              // Laisse les champs vides pour une saisie manuelle si le modèle n'est pas listé
+            }}
+            className="w-full text-center px-4 py-3 text-sm text-zinc-400 hover:text-white transition-colors"
+          >
+            Saisir manuellement une autre cylindrée
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* 5. Fuel Type Sheet */}
       <BottomSheet isOpen={activeSheet === 'fuel'} onClose={() => setActiveSheet(null)} title="Type de Carburant">
         <div className="flex flex-col gap-2">
           {FUEL_TYPES.map(fuel => (
