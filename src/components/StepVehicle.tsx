@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square } from 'lucide-react';
+import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2 } from 'lucide-react';
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
 import { lookupCarSpec } from '../utils/carSpecs';
@@ -18,6 +18,9 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [availableSpecs, setAvailableSpecs] = useState<Partial<VehicleData>[]>([]);
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [isCustomModel, setIsCustomModel] = useState(false);
+  const [vinQuery, setVinQuery] = useState('');
+  const [isSearchingVin, setIsSearchingVin] = useState(false);
+  const [vinError, setVinError] = useState('');
 
   const BRANDS = [
     'Abarth', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 
@@ -136,6 +139,40 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
 
   const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2 && data.acceptedTerms;
 
+  const handleVinSearch = async () => {
+    if (!vinQuery.trim()) return;
+    
+    setIsSearchingVin(true);
+    setVinError('');
+    
+    try {
+      const response = await fetch(`/api/carapi?vin=${encodeURIComponent(vinQuery)}`);
+      if (!response.ok) {
+        throw new Error('Veículo não encontrado');
+      }
+      
+      const result = await response.json();
+      
+      updateData({
+        brand: result.make || '',
+        model: result.model || '',
+        year: result.year?.toString() || '',
+        fuelType: result.fuel_type as FuelType || '',
+        engineCapacity: result.engine_cc?.toString() || '',
+        co2: result.co2?.toString() || ''
+      });
+      
+      setAutoFilled(true);
+      // Auto-switch to custom if the brand/model aren't in our predefined lists to prevent them from looking empty
+      if (result.make && !BRANDS.includes(result.make)) setIsCustomBrand(true);
+      
+    } catch (err: any) {
+      setVinError(err.message || 'Erro ao procurar veículo');
+    } finally {
+      setIsSearchingVin(false);
+    }
+  };
+
   // Render a mobile-friendly text input field
   const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "", rightElement?: React.ReactNode) => (
     <div className="flex flex-col gap-1.5 mb-4 relative">
@@ -181,6 +218,38 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-2">Detalhes do Veículo</h2>
         <p className="text-zinc-400">Insira as informações básicas do veículo para a simulação.</p>
+      </div>
+
+      {/* VIN / License Plate Search Area */}
+      <div className="mb-8 p-5 bg-blue-600/10 border border-blue-500/20 rounded-2xl relative overflow-hidden group">
+        <div className="flex flex-col gap-3 relative z-10">
+          <label className="text-sm font-semibold text-blue-400">Preenchimento Automático</label>
+          <div className="flex gap-2 w-full">
+            <input
+              type="text"
+              value={vinQuery}
+              onChange={(e) => {
+                setVinQuery(e.target.value);
+                setVinError('');
+              }}
+              placeholder="Matrícula ou Nº Quadro (VIN)"
+              className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 uppercase font-medium"
+              onKeyDown={(e) => e.key === 'Enter' && handleVinSearch()}
+            />
+            <button
+              onClick={handleVinSearch}
+              disabled={isSearchingVin || !vinQuery.trim()}
+              className="bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-zinc-500 text-white p-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center min-w-[56px]"
+            >
+              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <Search size={20} />}
+            </button>
+          </div>
+          {vinError && <span className="text-red-400 text-sm mt-1">{vinError}</span>}
+          <p className="text-xs text-zinc-400 mt-1">Carrega marca, modelo, cc e CO2 automaticamente.</p>
+        </div>
+        <div className="absolute -right-10 -bottom-10 opacity-10 blur-xl group-hover:opacity-20 transition-opacity pointer-events-none">
+           <Wand2 size={120} className="text-blue-500" />
+        </div>
       </div>
 
     <div className="flex flex-col gap-1 w-full">
