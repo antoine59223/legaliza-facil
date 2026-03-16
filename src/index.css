@@ -24,3 +24,17 @@
     @apply bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-md border border-white/10 transition-colors duration-200;
   }
 }
+
+/* Suppression totale des badges et logos Stripe (Test Mode et Branding) */
+.StripeTestBadge, 
+div[id*='stripe-test-badge'], 
+iframe[src*='stripe-network-badge'],
+.__PrivateStripeElement,
+[class*='StripeElement']::after,
+.stripe-img,
+.StripeElement-logo {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
