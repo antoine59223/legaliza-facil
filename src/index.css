@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --color-electric-blue: #0057ff;
+  --color-electric-blue-hover: #0046cc;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply bg-zinc-950 text-zinc-100 antialiased font-sans flex flex-col min-h-[100dvh] w-full;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom Utilities for Glassmorphism */
+@layer utilities {
+  .glass-panel {
+    @apply bg-zinc-900/60 backdrop-blur-xl border border-white/5 shadow-xl;
+  }
+  
+  .glass-button {
+    @apply bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-md border border-white/10 transition-colors duration-200;
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "api": {
+    "bodyParser": {
+      "sizeLimit": "1mb"
+    }
+  }
+}
