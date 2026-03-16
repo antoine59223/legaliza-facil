@@ -5,9 +5,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2023-10-16',
 });
 
+// Helper function to extract a text value from an XML string
+function extractXmlTag(xml: string, tag: string): string {
+  // Try simple text content first: <Tag>value</Tag>
+  const simpleMatch = xml.match(new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`, 'i'));
+  if (simpleMatch && simpleMatch[1].trim()) return simpleMatch[1].trim();
+
+  // Try CurrentTextValue sub-element: <EngineSize><CurrentTextValue>1969</CurrentTextValue></EngineSize>
+  const blockMatch = xml.match(new RegExp(`<${tag}[^>]*>[\\s\\S]*?<CurrentTextValue[^>]*>([^<]+)<\\/CurrentTextValue>[\\s\\S]*?<\\/${tag}>`, 'i'));
+  if (blockMatch && blockMatch[1].trim()) return blockMatch[1].trim();
+
+  return '';
+}
+
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*'); 
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
@@ -16,111 +29,126 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const vin = req.query.vin || req.body?.vin;
+    // 1. Validate params
+    const plate = req.query.vin || req.body?.vin;
     const paymentIntentId = req.query.payment_intent_id || req.body?.payment_intent_id;
 
-    if (!vin) return res.status(400).json({ error: 'Matrícula ou Nº Quadro obrigatório' });
-    if (!paymentIntentId) return res.status(402).json({ error: 'Pagamento não encontrado (Falta payment_intent_id)' });
+    if (!plate) return res.status(400).json({ error: 'Matrícula obrigatória' });
+    if (!paymentIntentId) return res.status(402).json({ error: 'Pagamento não encontrado' });
 
+    // 2. Validate Stripe payment
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     if (paymentIntent.status !== 'succeeded') {
-      return res.status(402).json({ error: 'O pagamento não foi validado com sucesso pela Stripe.' });
+      return res.status(402).json({ error: 'Pagamento não validado pela Stripe.' });
     }
 
-    const token = process.env.CAR_API_TOKEN;
-    const secret = process.env.CAR_API_SECRET;
+    // 3. Get RegCheck username from environment
+    const regcheckUsername = process.env.REGCHECK_USERNAME || 'Antoine59';
 
-    if (!token || token === 'TON_TOKEN_ICI') {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      return res.status(200).json({
-        make: "Audi", model: "A4", year: "2018",
-        fuel_type: "Gasóleo", engine_cc: "1968", co2: "115"
-      });
-    }
-
-    // STEP 1: Authenticate
-    const authRes = await fetch("https://carapi.app/api/auth/login", {
-      method: 'POST',
-      headers: { 'Accept': 'text/plain', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ "api_token": token, "api_secret": secret })
+    // 4. Call RegCheck API for Portugal
+    const url = `http://www.regcheck.org.uk/api/reg.asmx/CheckPortugal?RegistrationNumber=${encodeURIComponent(plate)}&username=${encodeURIComponent(regcheckUsername)}`;
+    
+    console.log(`Calling RegCheck for plate: ${plate}`);
+    
+    const apiRes = await fetch(url, {
+      headers: { 'Accept': 'text/xml, application/xml' }
     });
 
-    if (!authRes.ok) throw new Error(`Auth failed: ${authRes.status}`);
-    const jwtValidToken = await authRes.text();
-    const headers = { 'Authorization': `Bearer ${jwtValidToken}`, 'Accept': 'application/json' };
-
-    // STEP 2: Get basic vehicle info (license plate or VIN)
-    const isVin = vin.length === 17 && /^[A-HJ-NPR-Z0-9]+$/i.test(vin);
-    let data: any = {};
-
-    if (isVin) {
-      const r = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
-      if (r.ok) data = await r.json();
-    } else {
-      const r = await fetch(`https://carapi.app/api/license-plate?country_code=PT&lookup=${encodeURIComponent(vin)}`, { headers });
-      if (!r.ok) {
-        const errBody = await r.text();
-        throw new Error(`Vehicle not found (${r.status}): ${errBody.slice(0, 100)}`);
-      }
-      data = await r.json();
-      console.log('Plate response:', JSON.stringify(data).slice(0, 300));
-
-      // STEP 3: Deep VIN lookup if plate gave us a VIN
-      const plateVin = data?.vin;
-      if (plateVin) {
-        const vinR = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(plateVin)}`, { headers });
-        if (vinR.ok) {
-          const vinData = await vinR.json();
-          console.log('Deep VIN response:', JSON.stringify(vinData).slice(0, 300));
-          data = { ...data, ...vinData };
-        }
-      }
+    if (!apiRes.ok) {
+      const errText = await apiRes.text();
+      console.error('RegCheck error:', errText.slice(0, 200));
+      throw new Error(`RegCheck falhou (${apiRes.status})`);
     }
 
-    // Extract basic fields
-    const make = data?.make?.name || data?.make || '';
-    const model = data?.model?.name || data?.model || '';
-    const year = data?.year?.year?.toString() || data?.year?.toString() || '';
-    const fuelTypeNode = data?.engine?.fuel_type || data?.fuel_type || 'Gasolina';
+    const xmlText = await apiRes.text();
+    console.log('RegCheck raw XML:', xmlText.slice(0, 800));
 
-    // Try direct engine cc from VIN data
-    let engineCc = data?.engine?.displacement_cc?.toString() ||
-                   data?.engine?.displacement?.toString() ||
-                   '';
+    // 5. Try to parse vehicleJson first (richest data)
+    let make = '', model = '', year = '', fuelType = '', engineCc = '', co2 = '';
 
-    // If the VIN/plate gave us 'size' in liters (e.g. 2.0), convert to cc
-    if (!engineCc && data?.engine?.size) {
-      engineCc = Math.round(parseFloat(data.engine.size) * 1000).toString();
-    }
+    const jsonMatch = xmlText.match(/<vehicleJson>([^<]+)<\/vehicleJson>/i);
+    if (jsonMatch) {
+      try {
+        const decoded = jsonMatch[1]
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'");
+        const vJson = JSON.parse(decoded);
+        console.log('vehicleJson parsed:', JSON.stringify(vJson).slice(0, 500));
 
-    let co2 = data?.engine?.co2_emissions?.toString() ||
-              data?.co2_emissions?.toString() ||
-              data?.co2?.toString() ||
-              '';
-
-    // STEP 4: If still missing engine CC, query the engines endpoint by make/model/year
-    if (!engineCc && make && model && year) {
-      console.log(`Querying /api/engines/v2 for ${make} ${model} ${year}...`);
-      const engUrl = `https://carapi.app/api/engines/v2?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${encodeURIComponent(year)}&limit=3`;
-      const engRes = await fetch(engUrl, { headers });
-      if (engRes.ok) {
-        const engData = await engRes.json();
-        console.log('Engines response:', JSON.stringify(engData).slice(0, 400));
-        // data is { data: [...engines] }
-        const firstEngine = engData?.data?.[0];
-        if (firstEngine) {
-          // 'size' is in liters (e.g. 2.0 -> 2000cc)
-          if (firstEngine?.size) {
-            engineCc = Math.round(parseFloat(firstEngine.size) * 1000).toString();
-          }
-        }
+        make = vJson?.CarMake?.CurrentTextValue || vJson?.CarMake || vJson?.Make || '';
+        model = vJson?.CarModel || vJson?.Model || vJson?.ModelDescription || '';
+        year = vJson?.RegistrationYear || vJson?.ManufactureYearFrom || '';
+        fuelType = vJson?.FuelType?.CurrentTextValue || vJson?.FuelType || '';
+        
+        // Engine size - may come like "1969" or "1.9" (liters) or "1969cc"
+        const rawEngine = vJson?.EngineSize?.CurrentTextValue || vJson?.EngineSize || '';
+        engineCc = parseEngineSize(rawEngine);
+        
+        co2 = vJson?.CO2Emissions?.CurrentTextValue || vJson?.CO2Emissions || 
+              vJson?.Co2Emissions || vJson?.co2_emissions || '';
+      } catch (e) {
+        console.warn('Failed to parse vehicleJson:', e);
       }
     }
 
-    return res.status(200).json({ make, model, year, fuel_type: fuelTypeNode, engine_cc: engineCc, co2 });
+    // 6. Fall back to XML tags if JSON parsing didn't get all fields
+    if (!make) make = extractXmlTag(xmlText, 'MakeDescription') || extractXmlTag(xmlText, 'CarMake');
+    if (!model) model = extractXmlTag(xmlText, 'ModelDescription') || extractXmlTag(xmlText, 'CarModel');
+    if (!year) year = extractXmlTag(xmlText, 'RegistrationYear') || extractXmlTag(xmlText, 'ManufactureYearFrom');
+    if (!fuelType) fuelType = extractXmlTag(xmlText, 'FuelType');
+    if (!engineCc) {
+      const rawEngXml = extractXmlTag(xmlText, 'EngineSize');
+      engineCc = parseEngineSize(rawEngXml);
+    }
+    if (!co2) co2 = extractXmlTag(xmlText, 'CO2Emissions') || extractXmlTag(xmlText, 'Co2Emissions');
+
+    // Map fuel type to Portuguese
+    fuelType = mapFuelType(fuelType);
+
+    console.log(`Result: make=${make}, model=${model}, year=${year}, fuelType=${fuelType}, engineCc=${engineCc}, co2=${co2}`);
+
+    if (!make && !model) {
+      throw new Error('Veículo não encontrado no RegCheck. Verifique a matrícula.');
+    }
+
+    return res.status(200).json({
+      make,
+      model,
+      year,
+      fuel_type: fuelType,
+      engine_cc: engineCc,
+      co2
+    });
 
   } catch (error: any) {
-    console.error('CarAPI proxy error:', error);
+    console.error('RegCheck proxy error:', error);
     return res.status(500).json({ error: 'Falha ao pesquisar o veículo', details: error.message });
   }
+}
+
+// Parse engine size which can come as "1969", "1969cc", "1.9", "2.0L", etc.
+function parseEngineSize(raw: string): string {
+  if (!raw) return '';
+  const cleaned = raw.trim().replace(/[^\d.]/g, '');
+  if (!cleaned) return '';
+  const num = parseFloat(cleaned);
+  if (isNaN(num)) return '';
+  // If it looks like liters (< 20), convert to cc
+  if (num < 20) return Math.round(num * 1000).toString();
+  return Math.round(num).toString();
+}
+
+// Map fuel type in English to Portuguese
+function mapFuelType(raw: string): string {
+  const lower = (raw || '').toLowerCase().trim();
+  if (!lower) return 'Gasolina';
+  if (lower.includes('diesel') || lower.includes('gazóleo') || lower.includes('gasoleo')) return 'Gasóleo';
+  if (lower.includes('electric') || lower.includes('eléctrico') || lower.includes('eletrico')) return 'Elétrico';
+  if (lower.includes('plug') || lower.includes('phev')) return 'Híbrido Plug-in';
+  if (lower.includes('hybrid') || lower.includes('híbrido') || lower.includes('hibrido')) return 'Híbrido';
+  if (lower.includes('petrol') || lower.includes('gasolina') || lower.includes('essence') || lower.includes('gasoline')) return 'Gasolina';
+  return raw || 'Gasolina';
 }
