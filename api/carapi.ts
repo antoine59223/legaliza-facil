@@ -56,62 +56,62 @@ export default async function handler(req: any, res: any) {
     if (isVin) {
       const r = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
       if (r.ok) data = await r.json();
-      console.log('VIN raw response:', JSON.stringify(data).slice(0, 500));
     } else {
       const r = await fetch(`https://carapi.app/api/license-plate?country_code=PT&lookup=${encodeURIComponent(vin)}`, { headers });
-      if (!r.ok) throw new Error(`Vehicle not found (${r.status})`);
+      if (!r.ok) {
+        const errBody = await r.text();
+        throw new Error(`Vehicle not found (${r.status}): ${errBody.slice(0, 100)}`);
+      }
       data = await r.json();
-      console.log('License plate raw response:', JSON.stringify(data).slice(0, 500));
+      console.log('Plate response:', JSON.stringify(data).slice(0, 300));
 
-      // If we got a VIN from the plate lookup, do a deeper VIN search
+      // STEP 3: Deep VIN lookup if plate gave us a VIN
       const plateVin = data?.vin;
       if (plateVin) {
         const vinR = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(plateVin)}`, { headers });
         if (vinR.ok) {
           const vinData = await vinR.json();
-          console.log('Deep VIN raw response:', JSON.stringify(vinData).slice(0, 500));
+          console.log('Deep VIN response:', JSON.stringify(vinData).slice(0, 300));
           data = { ...data, ...vinData };
         }
       }
     }
 
-    // STEP 3: Extract what we can from the data
+    // Extract basic fields
     const make = data?.make?.name || data?.make || '';
     const model = data?.model?.name || data?.model || '';
     const year = data?.year?.year?.toString() || data?.year?.toString() || '';
     const fuelTypeNode = data?.engine?.fuel_type || data?.fuel_type || 'Gasolina';
 
+    // Try direct engine cc from VIN data
     let engineCc = data?.engine?.displacement_cc?.toString() ||
                    data?.engine?.displacement?.toString() ||
-                   data?.displacement_cc?.toString() ||
                    '';
+
+    // If the VIN/plate gave us 'size' in liters (e.g. 2.0), convert to cc
+    if (!engineCc && data?.engine?.size) {
+      engineCc = Math.round(parseFloat(data.engine.size) * 1000).toString();
+    }
+
     let co2 = data?.engine?.co2_emissions?.toString() ||
               data?.co2_emissions?.toString() ||
               data?.co2?.toString() ||
-              data?.engine?.emissions?.toString() ||
               '';
 
-    // STEP 4: If still missing specs AND we have make/model/year, try the trims endpoint
-    if ((!engineCc || !co2) && make && model && year) {
-      console.log(`Missing specs, trying trims lookup for ${make} ${model} ${year}...`);
-      const trimsUrl = `https://carapi.app/api/trims?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${encodeURIComponent(year)}&limit=1&verbose=yes`;
-      const trimsRes = await fetch(trimsUrl, { headers });
-      if (trimsRes.ok) {
-        const trimsData = await trimsRes.json();
-        console.log('Trims raw response:', JSON.stringify(trimsData).slice(0, 500));
-        const firstTrim = trimsData?.data?.[0] || trimsData?.[0];
-        if (firstTrim) {
-          if (!engineCc) {
-            engineCc = firstTrim?.make_model_trim_engine?.displacement_cc?.toString() ||
-                       firstTrim?.make_model_trim_engine?.displacement?.toString() ||
-                       firstTrim?.engine?.displacement_cc?.toString() ||
-                       '';
-          }
-          if (!co2) {
-            co2 = firstTrim?.make_model_trim_engine?.co2_emissions?.toString() ||
-                  firstTrim?.engine?.co2_emissions?.toString() ||
-                  firstTrim?.co2_emissions?.toString() ||
-                  '';
+    // STEP 4: If still missing engine CC, query the engines endpoint by make/model/year
+    if (!engineCc && make && model && year) {
+      console.log(`Querying /api/engines/v2 for ${make} ${model} ${year}...`);
+      const engUrl = `https://carapi.app/api/engines/v2?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${encodeURIComponent(year)}&limit=3`;
+      const engRes = await fetch(engUrl, { headers });
+      if (engRes.ok) {
+        const engData = await engRes.json();
+        console.log('Engines response:', JSON.stringify(engData).slice(0, 400));
+        // data is { data: [...engines] }
+        const firstEngine = engData?.data?.[0];
+        if (firstEngine) {
+          // 'size' is in liters (e.g. 2.0 -> 2000cc)
+          if (firstEngine?.size) {
+            engineCc = Math.round(parseFloat(firstEngine.size) * 1000).toString();
           }
         }
       }
