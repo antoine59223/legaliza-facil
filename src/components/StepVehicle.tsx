@@ -13,8 +13,27 @@ interface StepProps {
 const FUEL_TYPES: FuelType[] = ['Gasolina', 'Gasóleo', 'Híbrido', 'Híbrido Plug-in', 'Elétrico'];
 
 export default function StepVehicle({ data, updateData, onNext }: StepProps) {
-  const [isFuelSheetOpen, setIsFuelSheetOpen] = useState(false);
+  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | null>(null);
   const [autoFilled, setAutoFilled] = useState(false);
+
+  const BRANDS = ['Audi', 'BMW', 'Mercedes-Benz', 'Porsche', 'Renault', 'Volkswagen', 'Tesla', 'Peugeot', 'Toyota', 'Seat', 'Skoda', 'Volvo', 'Ford'].sort();
+  const MODELS_BY_BRAND: Record<string, string[]> = {
+    'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'Q3', 'Q5', 'e-tron'],
+    'BMW': ['Serie 1', 'Serie 3', 'Serie 5', 'X1', 'X3', 'X5', 'M3', 'M4', 'i4'],
+    'Mercedes-Benz': ['Classe A', 'Classe C', 'Classe E', 'GLA', 'GLC', 'S450', 'S500'],
+    'Porsche': ['911', 'Cayenne', 'Macan', 'Panamera', 'Taycan'],
+    'Renault': ['Clio', 'Megane', 'Captur', 'Zoe'],
+    'Volkswagen': ['Golf', 'Polo', 'Passat', 'Tiguan', 'ID.3', 'ID.4'],
+    'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X']
+  };
+
+  const currentYear = new Date().getFullYear();
+  const YEARS = Array.from({ length: currentYear - 1999 }, (_, i) => (currentYear - i).toString());
+
+  const getAvailableModels = () => {
+    if (!data.brand) return [];
+    return MODELS_BY_BRAND[data.brand] || ['Autre modèle...'];
+  };
 
   useEffect(() => {
     if (data.brand.length > 2 && data.model.length >= 2 && data.year.length === 4) {
@@ -32,9 +51,9 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
 
   const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2;
 
-  // Render a mobile-friendly input field
+  // Render a mobile-friendly text input field
   const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "") => (
-    <div className="flex flex-col gap-1.5 mb-4">
+    <div className="flex flex-col gap-1.5 mb-4 relative">
       <label className="text-sm font-medium text-zinc-400 ml-1">{label}</label>
       <input
         type={type}
@@ -46,6 +65,22 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     </div>
   );
 
+  // Render a mobile-friendly BottomSheet Trigger field
+  const renderSelectTrigger = (label: string, value: string, placeholder: string, onClick: () => void, disabled: boolean = false) => (
+    <div className={`flex flex-col gap-1.5 mb-4 ${disabled ? 'opacity-50' : ''}`}>
+      <label className="text-sm font-medium text-zinc-400 ml-1">{label}</label>
+      <button
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        className="w-full bg-black/20 border border-white/10 rounded-2xl px-4 py-4 text-left flex justify-between items-center group hover:border-white/20 transition-all cursor-pointer"
+      >
+        <span className={`text-lg ${value ? 'text-white font-medium' : 'text-zinc-600'}`}>
+          {value || placeholder}
+        </span>
+        <ChevronDown size={20} className="text-zinc-500 group-hover:text-white transition-colors" />
+      </button>
+    </div>
+  );
   return (
     <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
       {/* Subtle glow inside the panel */}
@@ -56,24 +91,16 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         <p className="text-zinc-400">Insira as informações de base do veículo para la simulación.</p>
       </div>
 
-      <div className="flex flex-col gap-1 w-full">
-        {renderInput("Marque", data.brand, (val) => updateData({ brand: val }), "text", "Ex: BMW")}
-        {renderInput("Modèle", data.model, (val) => updateData({ model: val }), "text", "Ex: Serie 1")}
-        {renderInput("Année", data.year, (val) => updateData({ year: val }), "number", "Ex: 2018")}
+    <div className="flex flex-col gap-1 w-full">
+        {renderSelectTrigger("Marque", data.brand, "Sélectionner la marque", () => setActiveSheet('brand'))}
         
-        {/* Fuel Type Mobile Selector (BottomSheet Trigger) */}
-        <div className="flex flex-col gap-1.5 mb-4">
-          <label className="text-sm font-medium text-zinc-400 ml-1">Type de Carburant</label>
-          <button
-            onClick={() => setIsFuelSheetOpen(true)}
-            className="w-full bg-black/20 border border-white/10 rounded-2xl px-4 py-4 text-left flex justify-between items-center group hover:border-white/20 transition-all"
-          >
-            <span className={`text-lg ${data.fuelType ? 'text-white' : 'text-zinc-600'}`}>
-              {data.fuelType || "Sélectionner..."}
-            </span>
-            <ChevronDown size={20} className="text-zinc-500 group-hover:text-white transition-colors" />
-          </button>
-        </div>
+        {renderSelectTrigger("Modèle", data.model, "Sélectionner le modèle", () => {
+          if (data.brand) setActiveSheet('model');
+        }, !data.brand)}
+        
+        {renderSelectTrigger("Année d'immatriculation", data.year, "Année", () => setActiveSheet('year'))}
+        
+        {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
 
         {renderInput("Cylindrée (cc)", data.engineCapacity, (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, "number", "Ex: 1995")}
         {renderInput("Émissions CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120")}
@@ -99,20 +126,90 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         <ArrowRight size={20} />
       </button>
 
-      {/* iOS Style Action Sheet for Fuel Type */}
-      <BottomSheet isOpen={isFuelSheetOpen} onClose={() => setIsFuelSheetOpen(false)} title="Type de Carburant">
+      {/* iOS Style Action Sheets (Bottom Sheets) */}
+      
+      {/* 1. Brand Sheet */}
+      <BottomSheet isOpen={activeSheet === 'brand'} onClose={() => setActiveSheet(null)} title="Marque">
+        <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
+          {BRANDS.map(brand => (
+            <button
+              key={brand}
+              onClick={() => {
+                updateData({ brand, model: '' }); // reset model when brand changes
+                setActiveSheet(null);
+                setTimeout(() => setActiveSheet('model'), 300); // auto-open model sheet
+              }}
+              className={`w-full text-left px-5 py-3.5 rounded-xl transition-all ${
+                data.brand === brand ? 'bg-blue-600 text-white font-medium' : 'hover:bg-white/5 text-zinc-300'
+              }`}
+            >
+              {brand}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* 2. Model Sheet */}
+      <BottomSheet isOpen={activeSheet === 'model'} onClose={() => setActiveSheet(null)} title="Modèle">
+        <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
+          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 ml-2">Modèles {data.brand}</div>
+          {getAvailableModels().map(model => (
+            <button
+              key={model}
+              onClick={() => {
+                updateData({ model });
+                setActiveSheet(null);
+                if (!data.year) setTimeout(() => setActiveSheet('year'), 300);
+              }}
+              className={`w-full text-left px-5 py-3.5 rounded-xl transition-all ${
+                data.model === model ? 'bg-blue-600 text-white font-medium' : 'hover:bg-white/5 text-zinc-300'
+              }`}
+            >
+              {model}
+            </button>
+          ))}
+          <div className="h-px bg-white/10 my-2"></div>
+          <div className="px-3 py-2 text-sm text-zinc-500">
+            D'autres modèles peuvent être écrits manuellement si non listés.
+            (A implémenter: input libre)
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* 3. Year Sheet */}
+      <BottomSheet isOpen={activeSheet === 'year'} onClose={() => setActiveSheet(null)} title="Année">
+        <div className="flex flex-col gap-1 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
+          {YEARS.map(year => (
+            <button
+              key={year}
+              onClick={() => {
+                updateData({ year });
+                setActiveSheet(null);
+              }}
+              className={`w-full text-left px-5 py-3.5 rounded-xl transition-all text-lg border-b border-white/5 last:border-0 ${
+                data.year === year ? 'text-blue-400 font-bold' : 'text-zinc-300 active:bg-white/5'
+              }`}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* 4. Fuel Type Sheet */}
+      <BottomSheet isOpen={activeSheet === 'fuel'} onClose={() => setActiveSheet(null)} title="Type de Carburant">
         <div className="flex flex-col gap-2">
           {FUEL_TYPES.map(fuel => (
             <button
               key={fuel}
               onClick={() => {
                 updateData({ fuelType: fuel });
-                setIsFuelSheetOpen(false);
+                setActiveSheet(null);
               }}
-              className={`w-full text-left px-6 py-4 rounded-2xl transition-all ${
+              className={`w-full text-left px-6 py-4 rounded-2xl transition-all tracking-wide ${
                 data.fuelType === fuel 
-                ? 'bg-blue-600 text-white font-medium' 
-                : 'glass-button text-zinc-300'
+                ? 'bg-blue-600 shadow-[0_4px_20px_rgba(0,87,255,0.3)] text-white font-medium translate-x-2' 
+                : 'bg-white/5 border border-white/5 text-zinc-300 hover:bg-white/10'
               }`}
             >
               {fuel}

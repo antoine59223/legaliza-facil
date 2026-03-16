@@ -6,9 +6,10 @@ import { fetchOfficialTaxData } from '../utils/api';
 interface StepResultProps {
   data: VehicleData;
   onBack: () => void;
+  onReset: () => void;
 }
 
-export default function StepResult({ data, onBack }: StepResultProps) {
+export default function StepResult({ data, onBack, onReset }: StepResultProps) {
   const [taxes, setTaxes] = useState<{ isv: string, iuc: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,9 +52,13 @@ export default function StepResult({ data, onBack }: StepResultProps) {
         <button onClick={onBack} className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors">
           <ArrowLeft size={24} />
         </button>
-        <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+        <button 
+          onClick={onReset}
+          title="Nouvelle simulation" 
+          className="w-10 h-10 rounded-full bg-blue-500/10 hover:bg-blue-500/20 flex items-center justify-center text-blue-400 transition-colors"
+        >
           <Car size={20} />
-        </div>
+        </button>
       </div>
 
       <div className="mb-6">

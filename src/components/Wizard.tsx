@@ -54,6 +54,11 @@ export default function Wizard() {
     setData(prev => ({ ...prev, ...updates }));
   };
 
+  const handleReset = () => {
+    setData(initialData);
+    setStep(1);
+  };
+
   return (
     <div className="w-full flex justify-center perspective-[1000px]">
       <AnimatePresence mode="wait">
@@ -67,7 +72,7 @@ export default function Wizard() {
         >
           {step === 1 && <StepVehicle data={data} updateData={updateData} onNext={handleNext} />}
           {step === 2 && <StepHybrid data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}
-          {step === 3 && <StepResult data={data} onBack={handleBack} />}
+          {step === 3 && <StepResult data={data} onBack={handleBack} onReset={handleReset} />}
         </motion.div>
       </AnimatePresence>
     </div>
