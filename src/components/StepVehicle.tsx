@@ -190,6 +190,13 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         
         {renderSelectTrigger("Tipo de Combustível", data.fuelType, "Selecionar...", () => setActiveSheet('fuel'))}
 
+        {(data.fuelType === 'Híbrido' || data.fuelType === 'Híbrido Plug-in') && (
+          <div className="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm leading-relaxed">
+            <strong className="text-blue-400 block mb-1 font-semibold">Nota Importante sobre Híbridos:</strong>
+            Para beneficiar das reduções fiscais de ISV em Portugal, a lei exige que o veículo cumpra <strong>dois critérios cumulativos</strong>: ter uma <strong>autonomia em modo puramente elétrico de pelo menos 50 km</strong> e <strong>emissões oficiais iguais ou inferiores a 50 g/km de CO2</strong>.
+          </div>
+        )}
+
         {renderInput(
           "Cilindrada (cc)", 
           data.engineCapacity, 
