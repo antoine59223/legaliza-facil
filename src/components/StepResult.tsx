@@ -111,6 +111,17 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
         <CheckCircle size={14} className="text-zinc-600" />
         <p>Dados brutos via API (impostosobreveiculos.info)</p>
       </div>
+
+      {/* Elegant Warning Block */}
+      <div className="mt-8 bg-zinc-900/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+        <div className="flex items-start gap-3">
+          <AlertTriangle size={20} className="text-orange-400 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            <strong className="text-orange-400/90 font-semibold block mb-1">IMPORTANTE:</strong>
+            Este cálculo é uma simulação técnica baseada nos dados do portal 'impostosobreveiculos.info'. O valor final e legal deve ser validado junto da Alfândega ou através de um despachante oficial. O 'Legaliza Fácil' declina qualquer responsabilidade sobre divergências nos valores apresentados.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

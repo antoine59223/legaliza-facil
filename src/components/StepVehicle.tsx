@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ArrowRight, Wand2 } from 'lucide-react';
+import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square } from 'lucide-react';
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
 import { lookupCarSpec } from '../utils/carSpecs';
@@ -91,7 +91,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     }
   }, [data.brand, data.model, data.year]);
 
-  const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2;
+  const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2 && data.acceptedTerms;
 
   // Render a mobile-friendly text input field
   const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "", rightElement?: React.ReactNode) => (
@@ -185,6 +185,19 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             Motorização única detetada e preenchida!
           </div>
         )}
+
+        {/* Legal Checkbox */}
+        <div 
+          className="mt-4 flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => updateData({ acceptedTerms: !data.acceptedTerms })}
+        >
+          <div className="mt-0.5 text-blue-500">
+            {data.acceptedTerms ? <CheckSquare size={22} /> : <Square size={22} className="text-zinc-500" />}
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Compreendo que os valores exibidos são estimativas baseadas em simuladores externos e podem conter erros ou omissões. Não me responsabilizo por decisões baseadas nestes dados.
+          </p>
+        </div>
       </div>
 
       <button

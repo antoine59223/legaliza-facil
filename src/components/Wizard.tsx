@@ -15,6 +15,7 @@ export interface VehicleData {
   co2: string;
   rangeOver50km: boolean | null;
   co2Under50g: boolean | null;
+  acceptedTerms: boolean;
 }
 
 const initialData: VehicleData = {
@@ -26,6 +27,7 @@ const initialData: VehicleData = {
   co2: '',
   rangeOver50km: null,
   co2Under50g: null,
+  acceptedTerms: false,
 };
 
 export default function Wizard() {

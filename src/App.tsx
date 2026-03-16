@@ -42,13 +42,25 @@ function App() {
 
         {/* Main Content Area */}
         <motion.main 
-          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 mt-16 mb-8 mx-auto"
+          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 mt-16 mb-20 mx-auto"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: showSplash ? 0 : 1, scale: showSplash ? 0.95 : 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
           <Wizard />
         </motion.main>
+
+        {/* Global Disclaimer Footer */}
+        <motion.footer
+          className="absolute bottom-4 w-full flex justify-center px-6 z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: showSplash ? 0 : 1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <p className="text-[10px] md:text-xs text-zinc-500 text-center max-w-xl">
+            Aviso: Aplicação independente com fins meramente informativos. Não substitui a consulta dos canais oficiais da Autoridade Tributária.
+          </p>
+        </motion.footer>
 
       </div>
     </>
