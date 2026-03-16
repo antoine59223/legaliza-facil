@@ -71,6 +71,7 @@ export const carSpecsDB: CarSpec[] = [
   { brand: 'audi', model: 'a3', year: 2021, fuelType: 'Gasóleo', engineCapacity: '1968', co2: '119' }, // 35 TDI
   { brand: 'audi', model: 'a3', year: 2021, fuelType: 'Gasolina', engineCapacity: '1498', co2: '130' }, // 35 TFSI
   { brand: 'audi', model: 'a4', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1968', co2: '112' },
+  { brand: 'audi', model: 's8', year: 2019, fuelType: 'Gasolina', engineCapacity: '3996', co2: '260' }, // S8 TFSI
   { brand: 'audi', model: 'q3', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1395', co2: '38' }, // 45 TFSI e
   { brand: 'audi', model: 'q5', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1984', co2: '35' }, // 50 TFSI e
   
