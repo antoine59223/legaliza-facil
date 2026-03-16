@@ -335,7 +335,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       {/* 4. Engine Capacity Sheet */}
       <BottomSheet isOpen={activeSheet === 'engineCapacity'} onClose={() => setActiveSheet(null)} title="Cilindrada (Motorização)">
         <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
-          {availableSpecs.map((spec, index) => (
+          {Array.from(new Map(availableSpecs.map(spec => [spec.engineCapacity, spec])).values()).map((spec, index) => (
             <button
               key={index}
               onClick={() => {
