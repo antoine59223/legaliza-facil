@@ -117,8 +117,26 @@ export default async function handler(req: any, res: any) {
     const model = data?.model?.name || data?.model || '';
     const year = data?.year?.year?.toString() || data?.year?.toString() || '';
     const fuelTypeNode = data?.engine?.fuel_type || data?.fuel_type || 'Gasolina';
-    const engineCc = data?.engine?.displacement_cc?.toString() || data?.engine?.displacement?.toString() || '';
-    const co2 = data?.engine?.co2_emissions?.toString() || data?.co2_emissions?.toString() || data?.co2?.toString() || '';
+    
+    // Attempt to get CC from various fields
+    let engineCc = data?.engine?.displacement_cc?.toString() || 
+                   data?.engine?.displacement?.toString() || 
+                   '';
+                   
+    // If empty, look into the description (e.g., "2.0L")
+    const description = data?.engine?.engine_description || data?.engine_description || '';
+    if (!engineCc && description) {
+      const match = description.match(/(\d\.\d)L?/);
+      if (match) {
+        engineCc = (parseFloat(match[1]) * 1000).toString();
+      }
+    }
+
+    const co2 = data?.engine?.co2_emissions?.toString() || 
+                data?.co2_emissions?.toString() || 
+                data?.co2?.toString() || 
+                data?.engine?.emissions?.toString() || 
+                '';
 
     return res.status(200).json({
       make,
@@ -126,7 +144,8 @@ export default async function handler(req: any, res: any) {
       year,
       fuel_type: fuelTypeNode,
       engine_cc: engineCc,
-      co2
+      co2,
+      description // Helpful for debugging
     });
 
   } catch (error: any) {
