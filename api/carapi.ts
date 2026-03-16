@@ -98,7 +98,19 @@ export default async function handler(req: any, res: any) {
       throw new Error(`Veículo não encontrado na base de dados (Status: ${apiRes.status})`);
     }
     
-    const data = await apiRes.json();
+    let data = await apiRes.json();
+    
+    // If we searched by plate and got a VIN, but are missing engine data,
+    // let's try a second deeper lookup using the VIN to get full specs.
+    if (!isVin && data?.vin && (!data?.engine?.displacement_cc && !data?.engine?.co2_emissions)) {
+      console.log(`License plate lookup gave VIN ${data.vin}. Performing deep VIN lookup for technical specs...`);
+      const vinRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(data.vin)}`, { headers });
+      if (vinRes.ok) {
+        const vinData = await vinRes.json();
+        // Merge or replace data with the more detailed VIN data
+        data = { ...data, ...vinData };
+      }
+    }
     
     // Map CarAPI response to our format - Robust mapping for both VIN and Plate endpoints
     const make = data?.make?.name || data?.make || '';
