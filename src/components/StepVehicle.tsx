@@ -17,19 +17,49 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [autoFilled, setAutoFilled] = useState(false);
   const [availableSpecs, setAvailableSpecs] = useState<Partial<VehicleData>[]>([]);
 
-  const BRANDS = ['Audi', 'BMW', 'Mercedes-Benz', 'Porsche', 'Renault', 'Volkswagen', 'Tesla', 'Peugeot', 'Toyota', 'Seat', 'Skoda', 'Volvo', 'Ford'].sort();
+  const BRANDS = [
+    'Abarth', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 
+    'Citroën', 'Cupra', 'Dacia', 'DS Automobiles', 'Ferrari', 'Fiat', 'Ford', 
+    'Honda', 'Hyundai', 'Jaguar', 'Jeep', 'Kia', 'Land Rover', 'Lexus', 
+    'Maserati', 'Mazda', 'McLaren', 'Mercedes-Benz', 'Mini', 'Mitsubishi', 
+    'Nissan', 'Opel', 'Peugeot', 'Porsche', 'Renault', 'Rolls-Royce', 
+    'Seat', 'Skoda', 'Smart', 'Subaru', 'Suzuki', 'Tesla', 'Toyota', 
+    'Volkswagen', 'Volvo', 'Autre...'
+  ];
+
   const MODELS_BY_BRAND: Record<string, string[]> = {
-    'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'Q3', 'Q5', 'e-tron'],
-    'BMW': ['Serie 1', 'Serie 3', 'Serie 5', 'X1', 'X3', 'X5', 'M3', 'M4', 'i4'],
-    'Mercedes-Benz': ['Classe A', 'Classe C', 'Classe E', 'GLA', 'GLC', 'S450', 'S500'],
-    'Porsche': ['911', 'Cayenne', 'Macan', 'Panamera', 'Taycan'],
-    'Renault': ['Clio', 'Megane', 'Captur', 'Zoe'],
-    'Volkswagen': ['Golf', 'Polo', 'Passat', 'Tiguan', 'ID.3', 'ID.4'],
-    'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X']
+    'Alfa Romeo': ['Giulia', 'Stelvio', 'Tonale', 'Mito', 'Giulietta'],
+    'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q2', 'Q3', 'Q4 e-tron', 'Q5', 'Q7', 'Q8', 'e-tron', 'TT', 'R8'],
+    'BMW': ['Serie 1', 'Serie 2', 'Serie 3', 'Serie 4', 'Serie 5', 'Serie 6', 'Serie 7', 'Serie 8', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'Z4', 'i3', 'i4', 'iX', 'M2', 'M3', 'M4', 'M5'],
+    'Citroën': ['C1', 'C3', 'C3 Aircross', 'C4', 'C5 Aircross', 'C5 X', 'Berlingo'],
+    'Cupra': ['Formentor', 'Leon', 'Born', 'Ateca'],
+    'Dacia': ['Sandero', 'Duster', 'Jogger', 'Spring', 'Logan'],
+    'Fiat': ['500', '500X', 'Panda', 'Tipo', 'Ducato'],
+    'Ford': ['Fiesta', 'Focus', 'Puma', 'Kuga', 'Mustang', 'Mustang Mach-E', 'Ranger', 'Transit'],
+    'Honda': ['Civic', 'Jazz', 'HR-V', 'CR-V'],
+    'Hyundai': ['i10', 'i20', 'i30', 'Kona', 'Tucson', 'Santa Fe', 'Ioniq 5', 'Ioniq 6'],
+    'Jeep': ['Renegade', 'Compass', 'Wrangler', 'Grand Cherokee'],
+    'Kia': ['Picanto', 'Rio', 'Ceed', 'Sportage', 'Sorento', 'Niro', 'EV6', 'EV9'],
+    'Land Rover': ['Range Rover', 'Range Rover Sport', 'Range Rover Evoque', 'Range Rover Velar', 'Discovery', 'Defender'],
+    'Lexus': ['CT', 'IS', 'ES', 'NX', 'RX', 'UX'],
+    'Mazda': ['Mazda2', 'Mazda3', 'Mazda6', 'CX-3', 'CX-30', 'CX-5', 'CX-60', 'MX-5'],
+    'Mercedes-Benz': ['Classe A', 'Classe B', 'Classe C', 'Classe E', 'Classe S', 'Classe G', 'CLA', 'CLS', 'GLA', 'GLB', 'GLC', 'GLE', 'GLS', 'EQA', 'EQB', 'EQC', 'EQE', 'EQS', 'AMG GT'],
+    'Mini': ['Cooper', 'Countryman', 'Clubman'],
+    'Nissan': ['Micra', 'Juke', 'Qashqai', 'X-Trail', 'Ariya', 'Leaf'],
+    'Opel': ['Corsa', 'Astra', 'Mokka', 'Crossland', 'Grandland', 'Insignia'],
+    'Peugeot': ['208', '2008', '308', '3008', '408', '508', '5008', 'Rifter'],
+    'Porsche': ['911', '718 Boxster', '718 Cayman', 'Macan', 'Cayenne', 'Panamera', 'Taycan'],
+    'Renault': ['Twingo', 'Clio', 'Captur', 'Megane', 'Arkana', 'Kadjar', 'Austral', 'Espace', 'Zoe', 'Kangoo'],
+    'Seat': ['Ibiza', 'Leon', 'Arona', 'Ateca', 'Tarraco'],
+    'Skoda': ['Fabia', 'Scala', 'Octavia', 'Superb', 'Kamiq', 'Karoq', 'Kodiaq', 'Enyaq'],
+    'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X'],
+    'Toyota': ['Aygo X', 'Yaris', 'Yaris Cross', 'Corolla', 'C-HR', 'RAV4', 'Highlander', 'Land Cruiser', 'Supra'],
+    'Volkswagen': ['Polo', 'Golf', 'Passat', 'Arteon', 'T-Cross', 'Taigo', 'T-Roc', 'Tiguan', 'Touareg', 'ID.3', 'ID.4', 'ID.5', 'ID.Buzz', 'Caddy'],
+    'Volvo': ['XC40', 'XC60', 'XC90', 'S60', 'S90', 'V60', 'V90', 'C40']
   };
 
   const currentYear = new Date().getFullYear();
-  const YEARS = Array.from({ length: currentYear - 1999 }, (_, i) => (currentYear - i).toString());
+  const YEARS = Array.from({ length: currentYear - 1980 }, (_, i) => (currentYear - i).toString());
 
   const getAvailableModels = () => {
     if (!data.brand) return [];
