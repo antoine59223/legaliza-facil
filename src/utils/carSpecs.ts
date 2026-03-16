@@ -65,7 +65,59 @@ export const carSpecsDB: CarSpec[] = [
     fuelType: 'Gasolina',
     engineCapacity: '2993', // CSL
     co2: '222'
-  }
+  },
+  // --- AUDI ---
+  { brand: 'audi', model: 'a1', year: 2020, fuelType: 'Gasolina', engineCapacity: '999', co2: '108' },
+  { brand: 'audi', model: 'a3', year: 2021, fuelType: 'Gasóleo', engineCapacity: '1968', co2: '119' }, // 35 TDI
+  { brand: 'audi', model: 'a3', year: 2021, fuelType: 'Gasolina', engineCapacity: '1498', co2: '130' }, // 35 TFSI
+  { brand: 'audi', model: 'a4', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1968', co2: '112' },
+  { brand: 'audi', model: 'q3', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1395', co2: '38' }, // 45 TFSI e
+  { brand: 'audi', model: 'q5', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1984', co2: '35' }, // 50 TFSI e
+  
+  // --- BMW ---
+  { brand: 'bmw', model: 'serie 1', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1496', co2: '116' }, // 116d
+  { brand: 'bmw', model: 'serie 1', year: 2020, fuelType: 'Gasolina', engineCapacity: '1499', co2: '129' }, // 118i
+  { brand: 'bmw', model: 'serie 3', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '1998', co2: '31' }, // 330e
+  { brand: 'bmw', model: 'serie 5', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1995', co2: '118' }, // 520d
+  { brand: 'bmw', model: 'x1', year: 2023, fuelType: 'Híbrido Plug-in', engineCapacity: '1499', co2: '17' }, // xDrive25e
+  { brand: 'bmw', model: 'x5', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '2998', co2: '27' }, // xDrive45e
+
+  // --- MERCEDES-BENZ ---
+  { brand: 'mercedes-benz', model: 'classe a', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1461', co2: '114' }, // A 180 d
+  { brand: 'mercedes-benz', model: 'classe a', year: 2020, fuelType: 'Híbrido Plug-in', engineCapacity: '1332', co2: '22' }, // A 250 e
+  { brand: 'mercedes-benz', model: 'classe c', year: 2022, fuelType: 'Gasóleo', engineCapacity: '1992', co2: '120' }, // C 220 d
+  { brand: 'mercedes-benz', model: 'classe c', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1999', co2: '14' }, // C 300 e
+  { brand: 'mercedes-benz', model: 'glc', year: 2023, fuelType: 'Híbrido Plug-in', engineCapacity: '1999', co2: '12' }, // GLC 300 e
+  
+  // --- PEUGEOT ---
+  { brand: 'peugeot', model: '208', year: 2021, fuelType: 'Gasolina', engineCapacity: '1199', co2: '118' }, // PureTech 100
+  { brand: 'peugeot', model: '208', year: 2021, fuelType: 'Gasóleo', engineCapacity: '1499', co2: '105' }, // BlueHDi 100
+  { brand: 'peugeot', model: '308', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1598', co2: '24' }, // Hybrid 180
+  { brand: 'peugeot', model: '3008', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1499', co2: '135' }, // BlueHDi 130
+  
+  // --- RENAULT ---
+  { brand: 'renault', model: 'clio', year: 2020, fuelType: 'Gasóleo', engineCapacity: '1461', co2: '107' }, // Blue dCi 85
+  { brand: 'renault', model: 'megane', year: 2018, fuelType: 'Gasóleo', engineCapacity: '1461', co2: '95' }, // dCi 110
+  { brand: 'renault', model: 'captur', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '1598', co2: '32' }, // E-Tech Plug-in
+  
+  // --- VOLKSWAGEN ---
+  { brand: 'volkswagen', model: 'golf', year: 2021, fuelType: 'Gasóleo', engineCapacity: '1968', co2: '118' }, // 2.0 TDI 115
+  { brand: 'volkswagen', model: 'golf', year: 2021, fuelType: 'Gasolina', engineCapacity: '1498', co2: '125' }, // 1.5 eTSI
+  { brand: 'volkswagen', model: 'polo', year: 2020, fuelType: 'Gasolina', engineCapacity: '999', co2: '110' }, // 1.0 TSI
+  { brand: 'volkswagen', model: 'tiguan', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1968', co2: '128' }, // 2.0 TDI
+  
+  // --- PORSCHE ---
+  { brand: 'porsche', model: '911', year: 2020, fuelType: 'Gasolina', engineCapacity: '2981', co2: '236' }, // Carrera
+  { brand: 'porsche', model: 'macan', year: 2022, fuelType: 'Gasolina', engineCapacity: '1984', co2: '228' }, // Macan base
+  { brand: 'porsche', model: 'cayenne', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '2995', co2: '71' }, // E-Hybrid
+  
+  // --- TOYOTA ---
+  { brand: 'toyota', model: 'yaris', year: 2021, fuelType: 'Híbrido', engineCapacity: '1490', co2: '87' }, // Hybrid
+  { brand: 'toyota', model: 'corolla', year: 2020, fuelType: 'Híbrido', engineCapacity: '1798', co2: '101' }, // 1.8 Hybrid
+  
+  // --- VOLVO ---
+  { brand: 'volvo', model: 'xc40', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '1477', co2: '47' }, // Recharge T4
+  { brand: 'volvo', model: 'xc60', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1969', co2: '22' } // Recharge T6
 ];
 
 // Helper to look up specs

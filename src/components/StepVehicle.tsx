@@ -62,16 +62,23 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2;
 
   // Render a mobile-friendly text input field
-  const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "") => (
+  const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "", rightElement?: React.ReactNode) => (
     <div className="flex flex-col gap-1.5 mb-4 relative">
       <label className="text-sm font-medium text-zinc-400 ml-1">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full bg-black/20 border border-white/10 rounded-2xl px-4 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-lg"
-      />
+      <div className="relative w-full">
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-black/20 border border-white/10 rounded-2xl px-4 py-4 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all text-lg"
+        />
+        {rightElement && (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            {rightElement}
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -110,10 +117,22 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         
         {renderSelectTrigger("Année d'immatriculation", data.year, "Année", () => setActiveSheet('year'))}
         
-        {availableSpecs.length > 1 ? (
-          renderSelectTrigger("Cylindrée (cc)", data.engineCapacity, "Sélectionner la motorisation", () => setActiveSheet('engineCapacity'), !data.year)
-        ) : (
-          renderInput("Cylindrée (cc)", data.engineCapacity, (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, "number", "Ex: 1995")
+        {renderInput(
+          "Cylindrée (cc)", 
+          data.engineCapacity, 
+          (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, 
+          "number", 
+          "Ex: 1995",
+          availableSpecs.length > 0 ? (
+            <button
+              onClick={() => setActiveSheet('engineCapacity')}
+              className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-colors flex items-center gap-2 text-sm font-medium"
+              title="Voir les motorisations connues"
+            >
+              <Wand2 size={18} />
+              <span className="hidden sm:inline">Auto</span>
+            </button>
+          ) : undefined
         )}
 
         {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
@@ -226,32 +245,17 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
                 setActiveSheet(null);
                 setAutoFilled(true);
               }}
-              className={`w-full text-left px-5 py-4 rounded-xl transition-all border border-white/5 flex justify-between items-center ${
-                data.engineCapacity === spec.engineCapacity && data.co2 === spec.co2
-                ? 'bg-blue-600/20 border-blue-500/50 text-white' 
-                : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+              className={`w-full text-left px-5 py-4 rounded-xl transition-all border flex justify-between items-center ${
+                data.engineCapacity === spec.engineCapacity
+                ? 'bg-blue-600 border-blue-500 text-white shadow-[0_4px_20px_rgba(0,87,255,0.3)]' 
+                : 'bg-white/5 border-white/5 text-zinc-300 hover:bg-white/10'
               }`}
             >
-              <div className="flex flex-col">
-                <span className="font-semibold text-lg">{spec.engineCapacity} cc</span>
-                <span className="text-sm opacity-60">{spec.fuelType}</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="font-medium text-blue-400">{spec.co2} g/km</span>
-                <span className="text-xs opacity-50 uppercase tracking-widest">CO2</span>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-xl">{spec.engineCapacity} cc</span>
               </div>
             </button>
           ))}
-          <div className="h-px bg-white/10 my-2"></div>
-          <button
-            onClick={() => {
-              setActiveSheet(null);
-              // Laisse les champs vides pour une saisie manuelle si le modèle n'est pas listé
-            }}
-            className="w-full text-center px-4 py-3 text-sm text-zinc-400 hover:text-white transition-colors"
-          >
-            Saisir manuellement une autre cylindrée
-          </button>
         </div>
       </BottomSheet>
 
