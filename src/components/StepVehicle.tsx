@@ -355,7 +355,22 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           undefined, 
           autoFilled && !!data.co2
         )}
-        
+
+        {/* Hybrid CO2 hint: appears when the vehicle is PHEV/Hybrid and CO2 is empty after official search */}
+        {autoFilled && !data.co2 && (
+          data.fuelType?.toLowerCase().includes('híbrido') ||
+          data.fuelType?.toLowerCase().includes('hibrido') ||
+          data.fuelType?.toLowerCase().includes('hybrid') ||
+          data.fuelType?.toLowerCase().includes('phev')
+        ) && (
+          <div className="-mt-2 mb-4 flex gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs leading-relaxed">
+            <span className="text-lg leading-none">⚠️</span>
+            <span>
+              <strong>Veículo Híbrido detetado:</strong> O CO2 oficial depende das opções do seu veículo. Por favor insira o valor do seu certificado de conformidade <strong>(Casa V.7)</strong>, geralmente cerca de <strong>49&nbsp;g/km</strong> para este modelo.
+            </span>
+          </div>
+        )}
+
         {autoFilled && availableSpecs.length === 1 && (
           <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 mb-4 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
             <Wand2 size={16} />

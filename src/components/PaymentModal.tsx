@@ -22,7 +22,7 @@ const PRODUCTS: Record<ProductId, { title: string; price: number; features: stri
   fullpack: {
     title: 'Pack Completo',
     price: 7.49,
-    features: ['Auto-Fill Premium incluído', 'Relatório Oficial PDF incluído', 'Acesso V.I.P total'],
+    features: ['Auto-Fill Premium incluído', 'Relatório Oficial PDF incluído', 'Verificação CO2 por especialista (garantia para a Alfândega)'],
     recommended: true
   }
 };
