@@ -3,6 +3,7 @@ import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2 } 
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
 import { lookupCarSpec } from '../utils/carSpecs';
+import PaymentModal from './PaymentModal';
 
 interface StepProps {
   data: VehicleData;
@@ -21,6 +22,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [vinQuery, setVinQuery] = useState('');
   const [isSearchingVin, setIsSearchingVin] = useState(false);
   const [vinError, setVinError] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
 
   const BRANDS = [
     'Abarth', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 
@@ -146,13 +148,44 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     setVinError('');
     
     try {
-      const response = await fetch(`/api/carapi?vin=${encodeURIComponent(vinQuery)}`);
-      if (!response.ok) {
-        throw new Error('Veículo não encontrado');
-      }
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ vin: vinQuery.trim() })
+      });
       
       const result = await response.json();
       
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao inicializar o pagamento');
+      }
+      
+      setClientSecret(result.clientSecret);
+      
+    } catch (err: any) {
+      setVinError(err.message || 'Erro ao comunicar com o servidor');
+    } finally {
+      setIsSearchingVin(false);
+    }
+  };
+
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    setClientSecret(''); // Close Modal
+    setIsSearchingVin(true); // Show loader on main button while fetching final data
+    setVinError('');
+    
+    try {
+      // 1. Fetch exact CarAPI data securely bypassing the mock/proxy logic
+      const response = await fetch(`/api/carapi?vin=${encodeURIComponent(vinQuery)}&payment_intent_id=${paymentIntentId}`);
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Veículo não encontrado após pagamento');
+      }
+      
+      // 2. Auto-fill Data
       updateData({
         brand: result.make || '',
         model: result.model || '',
@@ -163,11 +196,10 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       });
       
       setAutoFilled(true);
-      // Auto-switch to custom if the brand/model aren't in our predefined lists to prevent them from looking empty
       if (result.make && !BRANDS.includes(result.make)) setIsCustomBrand(true);
       
     } catch (err: any) {
-      setVinError(err.message || 'Erro ao procurar veículo');
+      setVinError(err.message || 'Erro ao preencher dados do veículo.');
     } finally {
       setIsSearchingVin(false);
     }
@@ -474,6 +506,14 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           })}
         </div>
       </BottomSheet>
+      
+      {/* Stripe Payment Modal overlay */}
+      <PaymentModal 
+        clientSecret={clientSecret} 
+        vin={vinQuery}
+        onClose={() => setClientSecret('')} 
+        onSuccess={handlePaymentSuccess} 
+      />
     </div>
   );
 }

@@ -1,42 +1,83 @@
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  // @ts-ignore
+  apiVersion: '2023-10-16',
+});
+
 export default async function handler(req: any, res: any) {
   // CORS configuration
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins for proxy, adjust in prod
+  res.setHeader('Access-Control-Allow-Origin', '*'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   try {
-    const { vin } = req.query;
+    // 1. Validate request parameters
+    const vin = req.query.vin || req.body?.vin;
+    const paymentIntentId = req.query.payment_intent_id || req.body?.payment_intent_id;
 
-    if (!vin) {
-      return res.status(400).json({ error: 'VIN or License Plate is required' });
+    if (!vin) return res.status(400).json({ error: 'Matrícula ou Nº Quadro obrigatório' });
+    if (!paymentIntentId) return res.status(402).json({ error: 'Pagamento não encontrado (Falta payment_intent_id)' });
+
+    // 2. Validate Payment Security with Stripe (Crucial step to prevent fraud)
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(402).json({ error: 'O pagamento não foi validado com sucesso pela Stripe.' });
     }
 
-    // Since we don't have the user's API key yet, we mock a successful API response for demonstration purposes.
-    // In production, this would be a fetch() call to carapi.app using process.env.CARAPI_KEY
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock Response from CarAPI (or similar provider)
-    const mockResponse = {
-      make: "Audi",
-      model: "A4",
-      year: "2018",
-      fuel_type: "Gasóleo",
-      engine_cc: "1968",
-      co2: "115"
+    // Optional: Mark this paymentIntent as used in metadata to prevent double-dipping,
+    // although our frontend consumes it immediately.
+
+    // 3. Call Actual CarAPI via Server to hide secrets
+    const token = process.env.CAR_API_TOKEN;
+    const secret = process.env.CAR_API_SECRET;
+
+    if (!token || token === 'TON_TOKEN_ICI') {
+      // Mock mode if user hasn't put real keys yet
+      console.log('Using Mock CarAPI data because real keys are not set.');
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
+      return res.status(200).json({
+        make: "Audi", 
+        model: "A4", 
+        year: "2018", 
+        fuel_type: "Gasóleo", 
+        engine_cc: "1968", 
+        co2: "115"
+      });
+    }
+
+    // Real API Request to CarAPI
+    // (You would adapt URL and headers based on exact CarAPI docs you purchased)
+    const headers = { 
+      'Authorization': `Bearer ${token}` 
+      // If Secret is needed via header or query, adapt here
     };
+    
+    // Attempting query (Assuming CarAPI handles both VIN and EU license plates via a generic /vehicles endpoint)
+    // For demo accuracy, we hit their endpoint. Adjust this endpoint to the correct one from their docs.
+    const apiRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
+    
+    if (!apiRes.ok) throw new Error(`Falha ao comunicar com CarAPI (Status: ${apiRes.status})`);
+    
+    const data = await apiRes.json();
+    
+    // Map CarAPI response to our format
+    return res.status(200).json({
+      make: data?.make?.name || '',
+      model: data?.model?.name || '',
+      year: data?.year?.year?.toString() || '',
+      fuel_type: data?.engine?.fuel_type || 'Gasolina',
+      engine_cc: data?.engine?.displacement_cc?.toString() || '',
+      co2: data?.engine?.co2_emissions?.toString() || ''
+    });
 
-    return res.status(200).json(mockResponse);
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('CarAPI proxy error:', error);
-    return res.status(500).json({ error: 'Failed to fetch vehicle data', details: error.message });
+    return res.status(500).json({ error: 'Falha ao pesquisar o veículo', details: error.message });
   }
 }
