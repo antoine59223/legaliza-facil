@@ -16,6 +16,8 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | 'engineCapacity' | null>(null);
   const [autoFilled, setAutoFilled] = useState(false);
   const [availableSpecs, setAvailableSpecs] = useState<Partial<VehicleData>[]>([]);
+  const [isCustomBrand, setIsCustomBrand] = useState(false);
+  const [isCustomModel, setIsCustomModel] = useState(false);
 
   const BRANDS = [
     'Abarth', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 
@@ -28,34 +30,34 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   ];
 
   const MODELS_BY_BRAND: Record<string, string[]> = {
-    'Alfa Romeo': ['Giulia', 'Stelvio', 'Tonale', 'Mito', 'Giulietta'],
-    'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q2', 'Q3', 'Q4 e-tron', 'Q5', 'Q7', 'Q8', 'e-tron', 'TT', 'R8'],
-    'BMW': ['Serie 1', 'Serie 2', 'Serie 3', 'Serie 4', 'Serie 5', 'Serie 6', 'Serie 7', 'Serie 8', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'Z4', 'i3', 'i4', 'iX', 'M2', 'M3', 'M4', 'M5'],
-    'Citroën': ['C1', 'C3', 'C3 Aircross', 'C4', 'C5 Aircross', 'C5 X', 'Berlingo'],
-    'Cupra': ['Formentor', 'Leon', 'Born', 'Ateca'],
-    'Dacia': ['Sandero', 'Duster', 'Jogger', 'Spring', 'Logan'],
-    'Fiat': ['500', '500X', 'Panda', 'Tipo', 'Ducato'],
-    'Ford': ['Fiesta', 'Focus', 'Puma', 'Kuga', 'Mustang', 'Mustang Mach-E', 'Ranger', 'Transit'],
-    'Honda': ['Civic', 'Jazz', 'HR-V', 'CR-V'],
-    'Hyundai': ['i10', 'i20', 'i30', 'Kona', 'Tucson', 'Santa Fe', 'Ioniq 5', 'Ioniq 6'],
-    'Jeep': ['Renegade', 'Compass', 'Wrangler', 'Grand Cherokee'],
-    'Kia': ['Picanto', 'Rio', 'Ceed', 'Sportage', 'Sorento', 'Niro', 'EV6', 'EV9'],
-    'Land Rover': ['Range Rover', 'Range Rover Sport', 'Range Rover Evoque', 'Range Rover Velar', 'Discovery', 'Defender'],
-    'Lexus': ['CT', 'IS', 'ES', 'NX', 'RX', 'UX'],
-    'Mazda': ['Mazda2', 'Mazda3', 'Mazda6', 'CX-3', 'CX-30', 'CX-5', 'CX-60', 'MX-5'],
-    'Mercedes-Benz': ['Classe A', 'Classe B', 'Classe C', 'Classe E', 'Classe S', 'Classe G', 'CLA', 'CLS', 'GLA', 'GLB', 'GLC', 'GLE', 'GLS', 'EQA', 'EQB', 'EQC', 'EQE', 'EQS', 'AMG GT'],
-    'Mini': ['Cooper', 'Countryman', 'Clubman'],
-    'Nissan': ['Micra', 'Juke', 'Qashqai', 'X-Trail', 'Ariya', 'Leaf'],
-    'Opel': ['Corsa', 'Astra', 'Mokka', 'Crossland', 'Grandland', 'Insignia'],
-    'Peugeot': ['208', '2008', '308', '3008', '408', '508', '5008', 'Rifter'],
-    'Porsche': ['911', '718 Boxster', '718 Cayman', 'Macan', 'Cayenne', 'Panamera', 'Taycan'],
-    'Renault': ['Twingo', 'Clio', 'Captur', 'Megane', 'Arkana', 'Kadjar', 'Austral', 'Espace', 'Zoe', 'Kangoo'],
-    'Seat': ['Ibiza', 'Leon', 'Arona', 'Ateca', 'Tarraco'],
-    'Skoda': ['Fabia', 'Scala', 'Octavia', 'Superb', 'Kamiq', 'Karoq', 'Kodiaq', 'Enyaq'],
-    'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X'],
-    'Toyota': ['Aygo X', 'Yaris', 'Yaris Cross', 'Corolla', 'C-HR', 'RAV4', 'Highlander', 'Land Cruiser', 'Supra'],
-    'Volkswagen': ['Polo', 'Golf', 'Passat', 'Arteon', 'T-Cross', 'Taigo', 'T-Roc', 'Tiguan', 'Touareg', 'ID.3', 'ID.4', 'ID.5', 'ID.Buzz', 'Caddy'],
-    'Volvo': ['XC40', 'XC60', 'XC90', 'S60', 'S90', 'V60', 'V90', 'C40']
+    'Alfa Romeo': ['159', '166', '4C', '8C', 'Brera', 'Giulia', 'Giulietta', 'GT', 'Mito', 'Spider', 'Stelvio', 'Tonale'],
+    'Audi': ['A1', 'A2', 'A3', 'A4', 'A4 Allroad', 'A5', 'A6', 'A6 Allroad', 'A7', 'A8', 'e-tron', 'e-tron GT', 'Q2', 'Q3', 'Q4 e-tron', 'Q5', 'Q7', 'Q8', 'R8', 'RS3', 'RS4', 'RS5', 'RS6', 'RS7', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'SQ5', 'SQ7', 'TT', 'TT RS', 'TTS'],
+    'BMW': ['Serie 1', 'Serie 2', 'Serie 2 Active Tourer', 'Serie 3', 'Serie 3 Gran Turismo', 'Serie 4', 'Serie 5', 'Serie 6', 'Serie 7', 'Serie 8', 'i3', 'i4', 'i8', 'iX', 'iX3', 'M2', 'M3', 'M4', 'M5', 'M6', 'M8', 'X1', 'X2', 'X3', 'X3 M', 'X4', 'X4 M', 'X5', 'X5 M', 'X6', 'X6 M', 'X7', 'Z3', 'Z4'],
+    'Citroën': ['AMI', 'Berlingo', 'C-Crosser', 'C-Elysée', 'C-Zero', 'C1', 'C2', 'C3', 'C3 Aircross', 'C3 Picasso', 'C4', 'C4 Aircross', 'C4 Cactus', 'C4 Picasso', 'C4 SpaceTourer', 'C5', 'C5 Aircross', 'C5 X', 'C6', 'C8', 'DS3', 'DS4', 'DS5', 'E-Mehari', 'Grand C4 Picasso', 'Grand C4 SpaceTourer', 'Jumper', 'Jumpy', 'Nemo', 'SpaceTourer'],
+    'Cupra': ['Ateca', 'Born', 'Formentor', 'Leon'],
+    'Dacia': ['Dokker', 'Duster', 'Jogger', 'Lodgy', 'Logan', 'Sandero', 'Spring'],
+    'Fiat': ['124 Spider', '500', '500C', '500L', '500X', 'Abarth 500', 'Bravo', 'Doblo', 'Ducato', 'Fiorino', 'Freemont', 'Panda', 'Punto', 'Qubo', 'Scudo', 'Sedici', 'Talento', 'Tipo', 'Ulysse'],
+    'Ford': ['B-Max', 'Bronco', 'C-Max', 'EcoSport', 'Edge', 'Explorer', 'Fiesta', 'Focus', 'Galaxy', 'Grand C-Max', 'Ka', 'Ka+', 'Kuga', 'Mondeo', 'Mustang', 'Mustang Mach-E', 'Puma', 'Ranger', 'S-Max', 'Tourneo Connect', 'Tourneo Courier', 'Tourneo Custom', 'Transit', 'Transit Connect', 'Transit Courier', 'Transit Custom'],
+    'Honda': ['Accord', 'Civic', 'CR-V', 'CR-Z', 'e', 'HR-V', 'Insight', 'Jazz', 'NSX'],
+    'Hyundai': ['Bayon', 'Elantra', 'Grand Santa Fe', 'H-1', 'i10', 'i20', 'i20 N', 'i30', 'i30 N', 'i40', 'Ioniq', 'Ioniq 5', 'Ioniq 6', 'ix20', 'ix35', 'Kona', 'Kona N', 'Nexo', 'Santa Fe', 'Staria', 'Tucson'],
+    'Jeep': ['Avenger', 'Cherokee', 'Compass', 'Gladiator', 'Grand Cherokee', 'Renegade', 'Wrangler'],
+    'Kia': ['Carens', 'Ceed', 'Ceed Sportswagon', 'e-Niro', 'e-Soul', 'EV6', 'EV9', 'Niro', 'Optima', 'Picanto', 'ProCeed', 'Rio', 'Sorento', 'Soul', 'Sportage', 'Stinger', 'Stonic', 'Xceed'],
+    'Land Rover': ['Defender', 'Discovery', 'Discovery Sport', 'Freelander', 'Range Rover', 'Range Rover Evoque', 'Range Rover Sport', 'Range Rover Velar'],
+    'Lexus': ['CT', 'ES', 'GS', 'IS', 'LC', 'LS', 'NX', 'RC', 'RX', 'UX'],
+    'Mazda': ['CX-3', 'CX-30', 'CX-5', 'CX-60', 'CX-7', 'CX-80', 'Mazda2', 'Mazda3', 'Mazda5', 'Mazda6', 'MX-30', 'MX-5', 'RX-8'],
+    'Mercedes-Benz': ['AMG GT', 'Citan', 'Classe A', 'Classe B', 'Classe C', 'Classe CE', 'Classe CLA', 'Classe CLK', 'Classe CLS', 'Classe E', 'Classe G', 'Classe GL', 'Classe GLA', 'Classe GLB', 'Classe GLC', 'Classe GLE', 'Classe GLK', 'Classe GLS', 'Classe M', 'Classe R', 'Classe S', 'Classe T', 'Classe V', 'Classe X', 'EQA', 'EQB', 'EQC', 'EQE', 'EQS', 'EQV', 'GLA', 'GLB', 'GLC', 'GLE', 'GLS', 'Marco Polo', 'Maybach', 'SL', 'SLC', 'SLK', 'Viano', 'Vito'],
+    'Mini': ['Cabrio', 'Clubman', 'Countryman', 'Coupe', 'Mini 3 Portes', 'Mini 5 Portes', 'Paceman', 'Roadster'],
+    'Nissan': ['350Z', '370Z', 'Ariya', 'Evalia', 'GT-R', 'Juke', 'Leaf', 'Micra', 'Murano', 'Navara', 'Note', 'NV200', 'NV300', 'NV400', 'Pathfinder', 'Patrol', 'Pixo', 'Primastar', 'Pulsar', 'Qashqai', 'Qashqai+2', 'Townstar', 'X-Trail'],
+    'Opel': ['Adam', 'Agila', 'Ampera', 'Antara', 'Astra', 'Cascada', 'Combo', 'Combo Life', 'Corsa', 'Crossland', 'Crossland X', 'Frontera', 'Grandland', 'Grandland X', 'Insignia', 'Karl', 'Meriva', 'Mokka', 'Mokka X', 'Movano', 'Tigra', 'Vectra', 'Vivaro', 'Zafira', 'Zafira Life', 'Zafira Tourer'],
+    'Peugeot': ['107', '108', '2008', '206', '207', '208', '3008', '301', '307', '308', '4007', '4008', '407', '408', '5008', '508', '607', '807', 'Bipper', 'Boxer', 'Expert', 'ION', 'Partner', 'RCZ', 'Rifter', 'Traveller'],
+    'Porsche': ['718 Boxster', '718 Cayman', '911', 'Cayenne', 'Cayman', 'Macan', 'Panamera', 'Taycan'],
+    'Renault': ['Alaskan', 'Arkana', 'Austral', 'Avantime', 'Captur', 'Clio', 'Espace', 'Express', 'Fluence', 'Grand Modus', 'Grand Scenic', 'Kadjar', 'Kangoo', 'Koleos', 'Laguna', 'Latitude', 'Megane', 'Megane E-Tech', 'Modus', 'Rafale', 'Scenic', 'Symbioz', 'Talisman', 'Trafic', 'Twingo', 'Twizy', 'Vel Satis', 'Wind', 'Zoe'],
+    'Seat': ['Alhambra', 'Altea', 'Altea XL', 'Arona', 'Ateca', 'Exeo', 'Ibiza', 'Leon', 'Mii', 'Tarraco', 'Toledo'],
+    'Skoda': ['Citigo', 'Enyaq', 'Enyaq Coupe', 'Fabia', 'Kamiq', 'Karoq', 'Kodiaq', 'Octavia', 'Rapid', 'Roomster', 'Scala', 'Superb', 'Yeti'],
+    'Tesla': ['Model 3', 'Model S', 'Model X', 'Model Y', 'Cybertruck', 'Roadster'],
+    'Toyota': ['Auris', 'Avensis', 'Aygo', 'Aygo X', 'bZ4X', 'C-HR', 'Camry', 'Corolla', 'Corolla Cross', 'GR86', 'GT86', 'Highlander', 'Hilux', 'iQ', 'Land Cruiser', 'Mirai', 'Prius', 'Prius+', 'Proace', 'Proace City', 'Proace City Verso', 'Proace Verso', 'RAV4', 'Supra', 'Urban Cruiser', 'Verso', 'Yaris', 'Yaris Cross'],
+    'Volkswagen': ['Amarok', 'Arteon', 'Beetle', 'Caddy', 'California', 'Caravelle', 'CC', 'Crafter', 'Eos', 'Fox', 'Golf', 'Golf Plus', 'Golf Sportsvan', 'Grand California', 'ID.3', 'ID.4', 'ID.5', 'ID.7', 'ID.Buzz', 'Jetta', 'Multivan', 'Passat', 'Passat CC', 'Phaeton', 'Polo', 'Scirocco', 'Sharan', 'T-Cross', 'T-Roc', 'Taigo', 'Tiguan', 'Tiguan Allspace', 'Touareg', 'Touran', 'Transporter', 'Up!'],
+    'Volvo': ['C30', 'C40', 'C70', 'EX30', 'EX90', 'S40', 'S60', 'S80', 'S90', 'V40', 'V50', 'V60', 'V70', 'V90', 'XC40', 'XC60', 'XC70', 'XC90']
   };
 
   const currentYear = new Date().getFullYear();
@@ -139,13 +141,21 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </div>
 
     <div className="flex flex-col gap-1 w-full">
-        {renderSelectTrigger("Marque", data.brand, "Ex: BMW", () => setActiveSheet('brand'))}
+        {isCustomBrand ? (
+          renderInput("Marque (Saisie libre)", data.brand, (val) => updateData({ brand: val }), "text", "Ex: Ferrari")
+        ) : (
+          renderSelectTrigger("Marque", data.brand, "Sélectionner la marque", () => setActiveSheet('brand'))
+        )}
         
-        {renderSelectTrigger("Modèle", data.model, "Ex: Serie 1", () => {
-          if (data.brand) setActiveSheet('model');
-        }, !data.brand)}
+        {isCustomModel ? (
+          renderInput("Modèle (Saisie libre)", data.model, (val) => updateData({ model: val }), "text", "Ex: 458 Italia")
+        ) : (
+          renderSelectTrigger("Modèle", data.model, "Sélectionner le modèle", () => {
+            if (data.brand) setActiveSheet('model');
+          }, !data.brand)
+        )}
         
-        {renderSelectTrigger("Année d'immatriculation", data.year, "Ex: 2018", () => setActiveSheet('year'))}
+        {renderSelectTrigger("Année d'immatriculation", data.year, "Sélectionner...", () => setActiveSheet('year'))}
         
         {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
 
@@ -199,9 +209,18 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             <button
               key={brand}
               onClick={() => {
-                updateData({ brand, model: '' }); // reset model when brand changes
-                setActiveSheet(null);
-                setTimeout(() => setActiveSheet('model'), 300); // auto-open model sheet
+                if (brand === 'Autre...') {
+                  setIsCustomBrand(true);
+                  setIsCustomModel(true);
+                  updateData({ brand: '', model: '' });
+                  setActiveSheet(null);
+                } else {
+                  setIsCustomBrand(false);
+                  setIsCustomModel(false);
+                  updateData({ brand, model: '' });
+                  setActiveSheet(null);
+                  setTimeout(() => setActiveSheet('model'), 300);
+                }
               }}
               className={`w-full text-left px-5 py-3.5 rounded-xl transition-all ${
                 data.brand === brand ? 'bg-blue-600 text-white font-medium' : 'hover:bg-white/5 text-zinc-300'
@@ -217,13 +236,20 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       <BottomSheet isOpen={activeSheet === 'model'} onClose={() => setActiveSheet(null)} title="Modèle">
         <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
           <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 ml-2">Modèles {data.brand}</div>
-          {getAvailableModels().map(model => (
+          {[...getAvailableModels(), 'Autre modèle...'].map(model => (
             <button
               key={model}
               onClick={() => {
-                updateData({ model });
-                setActiveSheet(null);
-                if (!data.year) setTimeout(() => setActiveSheet('year'), 300);
+                if (model === 'Autre modèle...') {
+                  setIsCustomModel(true);
+                  updateData({ model: '' });
+                  setActiveSheet(null);
+                } else {
+                  setIsCustomModel(false);
+                  updateData({ model });
+                  setActiveSheet(null);
+                  if (!data.year) setTimeout(() => setActiveSheet('year'), 300);
+                }
               }}
               className={`w-full text-left px-5 py-3.5 rounded-xl transition-all ${
                 data.model === model ? 'bg-blue-600 text-white font-medium' : 'hover:bg-white/5 text-zinc-300'
@@ -232,11 +258,6 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               {model}
             </button>
           ))}
-          <div className="h-px bg-white/10 my-2"></div>
-          <div className="px-3 py-2 text-sm text-zinc-500">
-            D'autres modèles peuvent être écrits manuellement si non listés.
-            (A implémenter: input libre)
-          </div>
         </div>
       </BottomSheet>
 
