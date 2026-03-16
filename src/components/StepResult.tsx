@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+
 import { ArrowLeft, CheckCircle, Car, AlertTriangle, Loader2, Download, Lock } from 'lucide-react';
 import type { VehicleData } from './Wizard';
 import { fetchOfficialTaxData } from '../utils/api';
 import PaymentModal from './PaymentModal';
 import type { ProductId } from './PaymentModal';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+
 
 interface StepResultProps {
   data: VehicleData;
@@ -21,11 +22,12 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
   
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
+
 
   const hasPdf = data.unlockedProducts.includes('pdf') || data.unlockedProducts.includes('fullpack');
   const hasAutofill = data.unlockedProducts.includes('autofill') || data.unlockedProducts.includes('fullpack');
   const availableProducts: ProductId[] = hasAutofill ? ['pdf'] : ['pdf', 'fullpack'];
+
 
   useEffect(() => {
     let isMounted = true;
@@ -55,34 +57,135 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
   );
 
   const generatePDF = async () => {
-    if (!printRef.current) return;
+    if (!taxes) return;
     setIsGeneratingPdf(true);
     try {
-      const canvas = await html2canvas(printRef.current, {
-        scale: 2,
-        backgroundColor: '#18181b', // close to zinc-900
-        logging: false,
-        useCORS: true
-      });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210; // A4 width mm
+      const margin = 18;
+      const colW = W - margin * 2;
+      let y = 0;
+
+      // ── HEADER BAND ──
+      doc.setFillColor(10, 15, 40); // deep navy
+      doc.rect(0, 0, W, 48, 'F');
+
+      // Diagonal accent stripe
+      doc.setFillColor(30, 90, 200);
+      doc.triangle(W - 80, 0, W, 0, W, 48, 'F');
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text('LEGALIZA FÁCIL', margin, 22);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(180, 200, 255);
+      doc.text('Relatório Oficial de Simulação ISV — Portugal', margin, 32);
+
+      // Date
+      const now = new Date();
+      doc.setFontSize(8);
+      doc.setTextColor(140, 170, 230);
+      doc.text(`Gerado em: ${now.toLocaleDateString('pt-PT')} às ${now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`, margin, 42);
+
+      y = 62;
+
+      // ── VEHICLE SECTION ──
+      doc.setFillColor(245, 247, 252);
+      doc.roundedRect(margin, y, colW, 52, 3, 3, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(10, 15, 40);
+      doc.text('DADOS DO VEÍCULO', margin + 8, y + 10);
+
+      // Blue underline bar
+      doc.setFillColor(30, 90, 200);
+      doc.rect(margin + 8, y + 12, 40, 0.7, 'F');
+
+      const vehicleRows = [
+        ['Marca / Modelo', `${data.brand} ${data.model}`],
+        ['Ano de Matrícula', data.year],
+        ['Combustível', data.fuelType],
+        ['Cilindrada', `${data.engineCapacity} cc`],
+        ['Emissões CO2', `${data.co2} g/km`],
+      ];
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      let vy = y + 20;
+      vehicleRows.forEach(([label, val]) => {
+        doc.setTextColor(100, 110, 130);
+        doc.text(label, margin + 8, vy);
+        doc.setTextColor(10, 15, 40);
+        doc.setFont('helvetica', 'bold');
+        doc.text(val, margin + 70, vy);
+        doc.setFont('helvetica', 'normal');
+        vy += 7.5;
       });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.setProperties({ title: `LegalizaFacil_${data.brand}_${data.model}` });
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Relatorio_ISV_${data.brand.replace(/\s+/g,'')}_${data.model.replace(/\s+/g,'')}.pdf`);
+      y += 62;
+
+      // ── ISV RESULT SECTION ──
+      // Main ISV box
+      doc.setFillColor(30, 90, 200);
+      doc.roundedRect(margin, y, colW, 28, 3, 3, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(180, 210, 255);
+      doc.text('ISV ESTIMADO (TOTAL)', margin + 8, y + 10);
+
+      doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text(taxes.isv, margin + 8, y + 22);
+
+      // IUC box
+      y += 34;
+      doc.setFillColor(240, 244, 255);
+      doc.roundedRect(margin, y, colW, 20, 3, 3, 'F');
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 110, 130);
+      doc.text('IUC ESTIMADO (ANUAL)', margin + 8, y + 8);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(10, 15, 40);
+      doc.text(taxes.iuc, margin + 8, y + 16);
+
+      y += 28;
+
+      // ── LEGAL DISCLAIMER ──
+      y = 260; // Bottom of page
+
+      doc.setDrawColor(210, 215, 230);
+      doc.line(margin, y, W - margin, y);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(140, 145, 160);
+      const disclaimer = 'Simulação baseada nos tarifários aduaneiros de 2026 (Portaria ISV PT). O valor final e legal deve ser validado junto da Alfândega ou através de um despachante oficial. O Legaliza Fácil declina qualquer responsabilidade sobre divergências nos valores apresentados.';
+      const disclaimerLines = doc.splitTextToSize(disclaimer, colW);
+      doc.text(disclaimerLines, margin, y + 6);
+
+      doc.setFontSize(7);
+      doc.setTextColor(180, 185, 200);
+      doc.text('© 2026 Legaliza Fácil — legaliza-facil.vercel.app', W / 2, 292, { align: 'center' });
+
+      // Save
+      doc.save(`Relatorio_ISV_${data.brand.replace(/\s+/g, '')}_${data.model.replace(/\s+/g, '')}_${data.year}.pdf`);
     } catch (err) {
-      console.error("PDF Generation Error", err);
+      console.error('PDF Generation Error', err);
     } finally {
       setIsGeneratingPdf(false);
     }
   };
+
 
   const handlePaymentSuccess = (_paymentIntentId: string, productId: ProductId) => {
     const newUnlocked = [...data.unlockedProducts];
@@ -104,7 +207,7 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
 
   return (
     <div className="w-full">
-      <div ref={printRef} className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
       {/* Dynamic Background Glow based on state */}
       <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b pointer-events-none transition-colors duration-500 ${
         error ? 'from-red-600/20 to-transparent' : 'from-blue-600/20 to-transparent'
@@ -194,10 +297,13 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
             <button 
               onClick={generatePDF}
               disabled={isGeneratingPdf}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 rounded-2xl shadow-[0_4px_20px_rgba(0,87,255,0.4)] disabled:opacity-50 transition-all flex justify-center items-center gap-2"
+              className="w-full relative overflow-hidden py-5 rounded-2xl flex justify-center items-center gap-3 text-white font-bold text-lg transition-all duration-300 shadow-[0_8px_32px_rgba(30,90,200,0.5)] disabled:opacity-60"
+              style={{ background: 'linear-gradient(135deg, #0a1540 0%, #1e5ac8 50%, #c89b30 100%)' }}
             >
-              {isGeneratingPdf ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
-              <span>{isGeneratingPdf ? 'A Gerar Documento...' : 'Descarregar PDF Oficial'}</span>
+              {/* Shimmer layer */}
+              <span className="absolute inset-0 opacity-30 animate-pulse" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)' }} />
+              {isGeneratingPdf ? <Loader2 className="animate-spin" size={22} /> : <Download size={22} />}
+              <span>{isGeneratingPdf ? 'A Gerar Documento...' : '⬇︎ Descarregar Relatório Oficial PDF'}</span>
             </button>
           ) : (
             <div className="border border-white/10 rounded-2xl bg-black/40 relative overflow-hidden group">
