@@ -109,14 +109,16 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </div>
 
     <div className="flex flex-col gap-1 w-full">
-        {renderSelectTrigger("Marque", data.brand, "Sélectionner la marque", () => setActiveSheet('brand'))}
+        {renderSelectTrigger("Marque", data.brand, "Ex: BMW", () => setActiveSheet('brand'))}
         
-        {renderSelectTrigger("Modèle", data.model, "Sélectionner le modèle", () => {
+        {renderSelectTrigger("Modèle", data.model, "Ex: Serie 1", () => {
           if (data.brand) setActiveSheet('model');
         }, !data.brand)}
         
-        {renderSelectTrigger("Année d'immatriculation", data.year, "Année", () => setActiveSheet('year'))}
+        {renderSelectTrigger("Année d'immatriculation", data.year, "Ex: 2018", () => setActiveSheet('year'))}
         
+        {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
+
         {renderInput(
           "Cylindrée (cc)", 
           data.engineCapacity, 
@@ -134,8 +136,6 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             </button>
           ) : undefined
         )}
-
-        {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
 
         {renderInput("Émissions CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120")}
         
