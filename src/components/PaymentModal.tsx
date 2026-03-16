@@ -3,7 +3,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { X, Loader2, ShieldCheck, Check, Sparkles } from 'lucide-react';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 export type ProductId = 'autofill' | 'pdf' | 'fullpack';
 
@@ -109,6 +110,12 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
     setSelectedProduct(productId);
     setIsInitializing(true);
     setError('');
+
+    if (!stripePromise) {
+      setError('A chave pública da Stripe não está configurada no servidor (VITE_STRIPE_PUBLIC_KEY). Contacte o administrador.');
+      setIsInitializing(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/create-payment-intent', {
