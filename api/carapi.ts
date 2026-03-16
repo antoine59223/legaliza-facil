@@ -79,7 +79,18 @@ export default async function handler(req: any, res: any) {
       'Accept': 'application/json'
     };
     
-    const apiRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
+    // Auto-detect if it's a VIN (17 chars) or a License Plate
+    const isVin = vin.length === 17 && /^[A-HJ-NPR-Z0-9]+$/i.test(vin);
+    let apiRes;
+
+    if (isVin) {
+      console.log(`Searching by VIN: ${vin}`);
+      apiRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
+    } else {
+      console.log(`Searching by License Plate (Portugal): ${vin}`);
+      // Using /api/license-plate?country_code=PT&lookup=PLATE
+      apiRes = await fetch(`https://carapi.app/api/license-plate?country_code=PT&lookup=${encodeURIComponent(vin)}`, { headers });
+    }
     
     if (!apiRes.ok) {
       const errText = await apiRes.text();
