@@ -109,10 +109,16 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         : specs;
 
       setAvailableSpecs(filteredSpecs.map(s => ({
-        engineCapacity: s.engineCapacity,
-        co2: s.co2,
+        engineCapacity: String(s.engineCapacity || ''), // Ensure string
+        co2: String(s.co2 || ''),
         fuelType: s.fuelType as FuelType
-      })).filter(s => s.engineCapacity && s.engineCapacity !== 'undefined'));
+      })).filter(s => 
+        s.engineCapacity && 
+        s.engineCapacity.trim() !== '' && 
+        s.engineCapacity !== 'undefined' && 
+        s.engineCapacity !== 'null' && 
+        s.engineCapacity !== '0'
+      ));
       
       // If there's exactly one match and we haven't picked an engine yet, auto-fill it
       if (filteredSpecs.length === 1 && !data.engineCapacity && filteredSpecs[0].engineCapacity !== 'undefined' && filteredSpecs[0].engineCapacity !== undefined) {
@@ -371,13 +377,14 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       <BottomSheet isOpen={activeSheet === 'fuel'} onClose={() => setActiveSheet(null)} title="Tipo de Combustível">
         <div className="flex flex-col gap-2">
           {FUEL_TYPES.map(fuel => {
-            // If the user has picked a brand, model and year, only show fuels that exist in the DB for that car.
-            // But if the DB has NO specs for this car/year at all, then fallback to showing all options.
-            const allSpecsForCar = data.brand && data.model && data.year ? lookupCarSpec(data.brand, data.model, data.year) : [];
+            // Find all known specs for the selected Brand + Model (ignoring year for broader fuel matches)
+            const allSpecsForCar = data.brand && data.model ? lookupCarSpec(data.brand, data.model, data.year || '2018') : [];
             const hasAnySpecs = allSpecsForCar.length > 0;
             const hasThisFuel = allSpecsForCar.some(s => s.fuelType === fuel);
             
-            if (hasAnySpecs && !hasThisFuel) return null; // Don't render this fuel option if the car doesn't have it in the DB
+            // If we have specs for this car in the DB, only show fuels that exist for it.
+            // If we have NO specs for this car in the DB, show ALL fuels (fallback).
+            if (hasAnySpecs && !hasThisFuel) return null;
 
             return (
               <button
