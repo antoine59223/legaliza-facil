@@ -23,6 +23,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [isSearchingVin, setIsSearchingVin] = useState(false);
   const [vinError, setVinError] = useState('');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isOfficialData, setIsOfficialData] = useState(false);
 
   const BRANDS = [
     'Abarth', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 
@@ -105,6 +106,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   };
 
   useEffect(() => {
+    if (isOfficialData) return;
     if (data.brand.length > 2 && data.model.length >= 2 && data.year.length === 4) {
       const specs = lookupCarSpec(data.brand, data.model, data.year);
       
@@ -144,6 +146,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const handleVinSearchClick = () => {
     if (!vinQuery.trim()) return;
     setVinError('');
+    setIsOfficialData(false);
     setIsPaymentModalOpen(true);
   };
 
@@ -182,6 +185,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       });
       
       setAutoFilled(true);
+      setIsOfficialData(true);
       if (result.make && !BRANDS.includes(result.make)) setIsCustomBrand(true);
       
     } catch (err: any) {

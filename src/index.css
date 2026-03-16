@@ -29,7 +29,6 @@
 .StripeTestBadge, 
 div[id*='stripe-test-badge'], 
 iframe[src*='stripe-network-badge'],
-.__PrivateStripeElement,
 [class*='StripeElement']::after,
 .stripe-img,
 .StripeElement-logo {
