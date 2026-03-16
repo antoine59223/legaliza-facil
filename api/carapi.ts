@@ -6,7 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export default async function handler(req: any, res: any) {
-  // CORS configuration
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -17,136 +16,108 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // 1. Validate request parameters
     const vin = req.query.vin || req.body?.vin;
     const paymentIntentId = req.query.payment_intent_id || req.body?.payment_intent_id;
 
     if (!vin) return res.status(400).json({ error: 'Matrícula ou Nº Quadro obrigatório' });
     if (!paymentIntentId) return res.status(402).json({ error: 'Pagamento não encontrado (Falta payment_intent_id)' });
 
-    // 2. Validate Payment Security with Stripe (Crucial step to prevent fraud)
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     if (paymentIntent.status !== 'succeeded') {
       return res.status(402).json({ error: 'O pagamento não foi validado com sucesso pela Stripe.' });
     }
 
-    // Optional: Mark this paymentIntent as used in metadata to prevent double-dipping,
-    // although our frontend consumes it immediately.
-
-    // 3. Call Actual CarAPI via Server to hide secrets
     const token = process.env.CAR_API_TOKEN;
     const secret = process.env.CAR_API_SECRET;
 
     if (!token || token === 'TON_TOKEN_ICI') {
-      // Mock mode if user hasn't put real keys yet
-      console.log('Using Mock CarAPI data because real keys are not set.');
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
       return res.status(200).json({
-        make: "Audi", 
-        model: "A4", 
-        year: "2018", 
-        fuel_type: "Gasóleo", 
-        engine_cc: "1968", 
-        co2: "115"
+        make: "Audi", model: "A4", year: "2018",
+        fuel_type: "Gasóleo", engine_cc: "1968", co2: "115"
       });
     }
 
-    // Real API Request to CarAPI
-    // Step 1: Login to get JWT Bearer Token
+    // STEP 1: Authenticate
     const authRes = await fetch("https://carapi.app/api/auth/login", {
       method: 'POST',
-      headers: {
-        'Accept': 'text/plain',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "api_token": token,
-        "api_secret": secret
-      })
+      headers: { 'Accept': 'text/plain', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "api_token": token, "api_secret": secret })
     });
 
-    if (!authRes.ok) {
-      const errText = await authRes.text();
-      console.error('CarAPI Auth Error:', errText);
-      throw new Error(`Falha de autenticação na API de Veículos (Status: ${authRes.status})`);
-    }
-
+    if (!authRes.ok) throw new Error(`Auth failed: ${authRes.status}`);
     const jwtValidToken = await authRes.text();
+    const headers = { 'Authorization': `Bearer ${jwtValidToken}`, 'Accept': 'application/json' };
 
-    // Step 2: Use the JWT to fetch the VIN or License Plate
-    const headers = { 
-      'Authorization': `Bearer ${jwtValidToken}`,
-      'Accept': 'application/json'
-    };
-    
-    // Auto-detect if it's a VIN (17 chars) or a License Plate
+    // STEP 2: Get basic vehicle info (license plate or VIN)
     const isVin = vin.length === 17 && /^[A-HJ-NPR-Z0-9]+$/i.test(vin);
-    let apiRes;
+    let data: any = {};
 
     if (isVin) {
-      console.log(`Searching by VIN: ${vin}`);
-      apiRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
+      const r = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(vin)}`, { headers });
+      if (r.ok) data = await r.json();
+      console.log('VIN raw response:', JSON.stringify(data).slice(0, 500));
     } else {
-      console.log(`Searching by License Plate (Portugal): ${vin}`);
-      // Using /api/license-plate?country_code=PT&lookup=PLATE
-      apiRes = await fetch(`https://carapi.app/api/license-plate?country_code=PT&lookup=${encodeURIComponent(vin)}`, { headers });
-    }
-    
-    if (!apiRes.ok) {
-      const errText = await apiRes.text();
-      console.error('CarAPI Fetch Error:', errText);
-      throw new Error(`Veículo não encontrado na base de dados (Status: ${apiRes.status})`);
-    }
-    
-    let data = await apiRes.json();
-    
-    // If we searched by plate and got a VIN, but are missing engine data,
-    // let's try a second deeper lookup using the VIN to get full specs.
-    if (!isVin && data?.vin && (!data?.engine?.displacement_cc && !data?.engine?.co2_emissions)) {
-      console.log(`License plate lookup gave VIN ${data.vin}. Performing deep VIN lookup for technical specs...`);
-      const vinRes = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(data.vin)}`, { headers });
-      if (vinRes.ok) {
-        const vinData = await vinRes.json();
-        // Merge or replace data with the more detailed VIN data
-        data = { ...data, ...vinData };
+      const r = await fetch(`https://carapi.app/api/license-plate?country_code=PT&lookup=${encodeURIComponent(vin)}`, { headers });
+      if (!r.ok) throw new Error(`Vehicle not found (${r.status})`);
+      data = await r.json();
+      console.log('License plate raw response:', JSON.stringify(data).slice(0, 500));
+
+      // If we got a VIN from the plate lookup, do a deeper VIN search
+      const plateVin = data?.vin;
+      if (plateVin) {
+        const vinR = await fetch(`https://carapi.app/api/vin/${encodeURIComponent(plateVin)}`, { headers });
+        if (vinR.ok) {
+          const vinData = await vinR.json();
+          console.log('Deep VIN raw response:', JSON.stringify(vinData).slice(0, 500));
+          data = { ...data, ...vinData };
+        }
       }
     }
-    
-    // Map CarAPI response to our format - Robust mapping for both VIN and Plate endpoints
+
+    // STEP 3: Extract what we can from the data
     const make = data?.make?.name || data?.make || '';
     const model = data?.model?.name || data?.model || '';
     const year = data?.year?.year?.toString() || data?.year?.toString() || '';
     const fuelTypeNode = data?.engine?.fuel_type || data?.fuel_type || 'Gasolina';
-    
-    // Attempt to get CC from various fields
-    let engineCc = data?.engine?.displacement_cc?.toString() || 
-                   data?.engine?.displacement?.toString() || 
+
+    let engineCc = data?.engine?.displacement_cc?.toString() ||
+                   data?.engine?.displacement?.toString() ||
+                   data?.displacement_cc?.toString() ||
                    '';
-                   
-    // If empty, look into the description (e.g., "2.0L")
-    const description = data?.engine?.engine_description || data?.engine_description || '';
-    if (!engineCc && description) {
-      const match = description.match(/(\d\.\d)L?/);
-      if (match) {
-        engineCc = (parseFloat(match[1]) * 1000).toString();
+    let co2 = data?.engine?.co2_emissions?.toString() ||
+              data?.co2_emissions?.toString() ||
+              data?.co2?.toString() ||
+              data?.engine?.emissions?.toString() ||
+              '';
+
+    // STEP 4: If still missing specs AND we have make/model/year, try the trims endpoint
+    if ((!engineCc || !co2) && make && model && year) {
+      console.log(`Missing specs, trying trims lookup for ${make} ${model} ${year}...`);
+      const trimsUrl = `https://carapi.app/api/trims?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${encodeURIComponent(year)}&limit=1&verbose=yes`;
+      const trimsRes = await fetch(trimsUrl, { headers });
+      if (trimsRes.ok) {
+        const trimsData = await trimsRes.json();
+        console.log('Trims raw response:', JSON.stringify(trimsData).slice(0, 500));
+        const firstTrim = trimsData?.data?.[0] || trimsData?.[0];
+        if (firstTrim) {
+          if (!engineCc) {
+            engineCc = firstTrim?.make_model_trim_engine?.displacement_cc?.toString() ||
+                       firstTrim?.make_model_trim_engine?.displacement?.toString() ||
+                       firstTrim?.engine?.displacement_cc?.toString() ||
+                       '';
+          }
+          if (!co2) {
+            co2 = firstTrim?.make_model_trim_engine?.co2_emissions?.toString() ||
+                  firstTrim?.engine?.co2_emissions?.toString() ||
+                  firstTrim?.co2_emissions?.toString() ||
+                  '';
+          }
+        }
       }
     }
 
-    const co2 = data?.engine?.co2_emissions?.toString() || 
-                data?.co2_emissions?.toString() || 
-                data?.co2?.toString() || 
-                data?.engine?.emissions?.toString() || 
-                '';
-
-    return res.status(200).json({
-      make,
-      model,
-      year,
-      fuel_type: fuelTypeNode,
-      engine_cc: engineCc,
-      co2,
-      description // Helpful for debugging
-    });
+    return res.status(200).json({ make, model, year, fuel_type: fuelTypeNode, engine_cc: engineCc, co2 });
 
   } catch (error: any) {
     console.error('CarAPI proxy error:', error);
