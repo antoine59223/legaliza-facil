@@ -102,18 +102,24 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   useEffect(() => {
     if (data.brand.length > 2 && data.model.length >= 2 && data.year.length === 4) {
       const specs = lookupCarSpec(data.brand, data.model, data.year);
-      setAvailableSpecs(specs.map(s => ({
+      
+      // Filter by fuelType if the user has already selected one
+      const filteredSpecs = data.fuelType 
+        ? specs.filter(s => s.fuelType === data.fuelType)
+        : specs;
+
+      setAvailableSpecs(filteredSpecs.map(s => ({
         engineCapacity: s.engineCapacity,
         co2: s.co2,
         fuelType: s.fuelType as FuelType
-      })));
+      })).filter(s => s.engineCapacity && s.engineCapacity !== 'undefined'));
       
       // If there's exactly one match and we haven't picked an engine yet, auto-fill it
-      if (specs.length === 1 && !data.engineCapacity) {
+      if (filteredSpecs.length === 1 && !data.engineCapacity && filteredSpecs[0].engineCapacity !== 'undefined' && filteredSpecs[0].engineCapacity !== undefined) {
          updateData({
-            engineCapacity: specs[0].engineCapacity,
-            co2: specs[0].co2,
-            fuelType: specs[0].fuelType as FuelType,
+            engineCapacity: filteredSpecs[0].engineCapacity,
+            co2: filteredSpecs[0].co2,
+            fuelType: filteredSpecs[0].fuelType as FuelType,
          });
          setAutoFilled(true);
       }
@@ -364,22 +370,32 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       {/* 5. Fuel Type Sheet */}
       <BottomSheet isOpen={activeSheet === 'fuel'} onClose={() => setActiveSheet(null)} title="Tipo de Combustível">
         <div className="flex flex-col gap-2">
-          {FUEL_TYPES.map(fuel => (
-            <button
-              key={fuel}
-              onClick={() => {
-                updateData({ fuelType: fuel });
-                setActiveSheet(null);
-              }}
-              className={`w-full text-left px-6 py-4 rounded-2xl transition-all tracking-wide ${
-                data.fuelType === fuel 
-                ? 'bg-blue-600 shadow-[0_4px_20px_rgba(0,87,255,0.3)] text-white font-medium translate-x-2' 
-                : 'bg-white/5 border border-white/5 text-zinc-300 hover:bg-white/10'
-              }`}
-            >
-              {fuel}
-            </button>
-          ))}
+          {FUEL_TYPES.map(fuel => {
+            // If the user has picked a brand, model and year, only show fuels that exist in the DB for that car.
+            // But if the DB has NO specs for this car/year at all, then fallback to showing all options.
+            const allSpecsForCar = data.brand && data.model && data.year ? lookupCarSpec(data.brand, data.model, data.year) : [];
+            const hasAnySpecs = allSpecsForCar.length > 0;
+            const hasThisFuel = allSpecsForCar.some(s => s.fuelType === fuel);
+            
+            if (hasAnySpecs && !hasThisFuel) return null; // Don't render this fuel option if the car doesn't have it in the DB
+
+            return (
+              <button
+                key={fuel}
+                onClick={() => {
+                  updateData({ fuelType: fuel, engineCapacity: '', co2: '' }); // reset capacity/co2 when changing fuel
+                  setActiveSheet(null);
+                }}
+                className={`w-full text-left px-6 py-4 rounded-2xl transition-all tracking-wide ${
+                  data.fuelType === fuel 
+                  ? 'bg-blue-600 shadow-[0_4px_20px_rgba(0,87,255,0.3)] text-white font-medium translate-x-2' 
+                  : 'bg-white/5 border border-white/5 text-zinc-300 hover:bg-white/10'
+                }`}
+              >
+                {fuel}
+              </button>
+            );
+          })}
         </div>
       </BottomSheet>
     </div>
