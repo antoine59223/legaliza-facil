@@ -1,18 +1,31 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle, Car, AlertTriangle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, CheckCircle, Car, AlertTriangle, Loader2, Download, Lock } from 'lucide-react';
 import type { VehicleData } from './Wizard';
 import { fetchOfficialTaxData } from '../utils/api';
+import PaymentModal from './PaymentModal';
+import type { ProductId } from './PaymentModal';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface StepResultProps {
   data: VehicleData;
+  updateData: (updates: Partial<VehicleData>) => void;
   onBack: () => void;
   onReset: () => void;
 }
 
-export default function StepResult({ data, onBack, onReset }: StepResultProps) {
+export default function StepResult({ data, updateData, onBack, onReset }: StepResultProps) {
   const [taxes, setTaxes] = useState<{ isv: string, iuc: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const hasPdf = data.unlockedProducts.includes('pdf') || data.unlockedProducts.includes('fullpack');
+  const hasAutofill = data.unlockedProducts.includes('autofill') || data.unlockedProducts.includes('fullpack');
+  const availableProducts: ProductId[] = hasAutofill ? ['pdf'] : ['pdf', 'fullpack'];
 
   useEffect(() => {
     let isMounted = true;
@@ -41,8 +54,57 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
     </div>
   );
 
+  const generatePDF = async () => {
+    if (!printRef.current) return;
+    setIsGeneratingPdf(true);
+    try {
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        backgroundColor: '#18181b', // close to zinc-900
+        logging: false,
+        useCORS: true
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.setProperties({ title: `LegalizaFacil_${data.brand}_${data.model}` });
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Relatorio_ISV_${data.brand.replace(/\s+/g,'')}_${data.model.replace(/\s+/g,'')}.pdf`);
+    } catch (err) {
+      console.error("PDF Generation Error", err);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handlePaymentSuccess = (_paymentIntentId: string, productId: ProductId) => {
+    const newUnlocked = [...data.unlockedProducts];
+    if (!newUnlocked.includes(productId)) newUnlocked.push(productId);
+    
+    if (productId === 'fullpack') {
+       if (!newUnlocked.includes('pdf')) newUnlocked.push('pdf');
+       if (!newUnlocked.includes('autofill')) newUnlocked.push('autofill');
+    }
+    
+    updateData({ unlockedProducts: newUnlocked });
+    setIsPaymentModalOpen(false);
+    
+    // Auto-generate doc after successful payment
+    setTimeout(() => {
+      generatePDF();
+    }, 1000);
+  };
+
   return (
-    <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
+    <div className="w-full">
+      <div ref={printRef} className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
       {/* Dynamic Background Glow based on state */}
       <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b pointer-events-none transition-colors duration-500 ${
         error ? 'from-red-600/20 to-transparent' : 'from-blue-600/20 to-transparent'
@@ -122,6 +184,52 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
           </p>
         </div>
       </div>
+      
+      </div> {/* End of printRef div */}
+
+      {/* Action / Paywall Section (Outside of PDF) */}
+      {!loading && !error && taxes && (
+        <div className="mt-6">
+          {hasPdf ? (
+            <button 
+              onClick={generatePDF}
+              disabled={isGeneratingPdf}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 rounded-2xl shadow-[0_4px_20px_rgba(0,87,255,0.4)] disabled:opacity-50 transition-all flex justify-center items-center gap-2"
+            >
+              {isGeneratingPdf ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
+              <span>{isGeneratingPdf ? 'A Gerar Documento...' : 'Descarregar PDF Oficial'}</span>
+            </button>
+          ) : (
+            <div className="border border-white/10 rounded-2xl bg-black/40 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-zinc-900/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
+                 <Lock size={32} className="text-blue-400 mb-3" />
+                 <h4 className="text-white font-bold text-lg mb-2">Relatório Oficial PDF</h4>
+                 <p className="text-zinc-400 text-sm mb-4 leading-relaxed">
+                   Obtenha e imprima o documento detalhado e definitivo do cálculo para usar nas suas legalizações por <strong>5,99€</strong>.
+                 </p>
+                 <button 
+                   onClick={() => setIsPaymentModalOpen(true)} 
+                   className="bg-white text-black font-bold px-6 py-3 rounded-xl hover:bg-zinc-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                 >
+                   Desbloquear Documento
+                 </button>
+              </div>
+              <div className="opacity-20 pointer-events-none blur-[2px] select-none p-6 flex flex-col gap-4">
+                 <div className="h-4 bg-white/20 rounded w-3/4"></div>
+                 <div className="h-4 bg-white/20 rounded w-1/2"></div>
+                 <div className="h-24 bg-white/10 rounded w-full mt-4"></div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <PaymentModal 
+        isOpen={isPaymentModalOpen}
+        availableProducts={availableProducts}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 }

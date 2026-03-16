@@ -22,7 +22,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [vinQuery, setVinQuery] = useState('');
   const [isSearchingVin, setIsSearchingVin] = useState(false);
   const [vinError, setVinError] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const BRANDS = [
     'Abarth', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 
@@ -141,38 +141,14 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
 
   const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2 && data.acceptedTerms;
 
-  const handleVinSearch = async () => {
+  const handleVinSearchClick = () => {
     if (!vinQuery.trim()) return;
-    
-    setIsSearchingVin(true);
     setVinError('');
-    
-    try {
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ vin: vinQuery.trim() })
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao inicializar o pagamento');
-      }
-      
-      setClientSecret(result.clientSecret);
-      
-    } catch (err: any) {
-      setVinError(err.message || 'Erro ao comunicar com o servidor');
-    } finally {
-      setIsSearchingVin(false);
-    }
+    setIsPaymentModalOpen(true);
   };
 
-  const handlePaymentSuccess = async (paymentIntentId: string) => {
-    setClientSecret(''); // Close Modal
+  const handlePaymentSuccess = async (paymentIntentId: string, productId: string) => {
+    setIsPaymentModalOpen(false); // Close Modal
     setIsSearchingVin(true); // Show loader on main button while fetching final data
     setVinError('');
     
@@ -185,14 +161,24 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         throw new Error(result.error || 'Veículo não encontrado após pagamento');
       }
       
-      // 2. Auto-fill Data
+      // 2. Auto-fill Data & Unlock Status
+      const newUnlocked = [...data.unlockedProducts];
+      if (!newUnlocked.includes(productId)) newUnlocked.push(productId);
+      
+      // If fullpack is purchased, auto-grant both
+      if (productId === 'fullpack') {
+         if (!newUnlocked.includes('autofill')) newUnlocked.push('autofill');
+         if (!newUnlocked.includes('pdf')) newUnlocked.push('pdf');
+      }
+
       updateData({
         brand: result.make || '',
         model: result.model || '',
         year: result.year?.toString() || '',
         fuelType: result.fuel_type as FuelType || '',
         engineCapacity: result.engine_cc?.toString() || '',
-        co2: result.co2?.toString() || ''
+        co2: result.co2?.toString() || '',
+        unlockedProducts: newUnlocked
       });
       
       setAutoFilled(true);
@@ -274,18 +260,28 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               }}
               placeholder="Matrícula ou Nº Quadro (VIN)"
               className="flex-1 bg-black/60 border border-blue-500/20 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-400 uppercase font-medium shadow-inner"
-              onKeyDown={(e) => e.key === 'Enter' && handleVinSearch()}
+              onKeyDown={(e) => e.key === 'Enter' && handleVinSearchClick()}
             />
             <button
-              onClick={handleVinSearch}
+              onClick={handleVinSearchClick}
               disabled={isSearchingVin || !vinQuery.trim()}
               className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-white/10 disabled:to-white/10 disabled:text-zinc-500 text-white px-4 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center min-w-[56px] gap-2 font-medium"
             >
               {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span className="hidden sm:inline">Desbloquear</span></>}
             </button>
           </div>
-          {vinError && <span className="text-red-400 text-sm mt-1">{vinError}</span>}
-          <p className="text-xs text-zinc-400 mt-1">Obtenha os dados exatos (Cilindrada, CO2, etc) diretamente da base de dados Europeia por <strong className="text-white">2,99€</strong>.</p>
+          {isSearchingVin && (
+            <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 animate-pulse">
+              <Loader2 size={16} className="animate-spin" />
+              A processar o pagamento e a pesquisar na base de dados europeia...
+            </div>
+          )}
+          {vinError && <span className="text-red-400 text-sm mt-1 bg-red-500/10 p-2 rounded-lg border border-red-500/20">{vinError}</span>}
+          {!isSearchingVin && (
+            <div className="flex items-center justify-center gap-2 text-blue-200 text-sm mt-2 p-3 bg-blue-600/10 rounded-xl border border-blue-500/20">
+              Desbloqueie os dados oficiais europeus por <strong className="text-white"> 2,99€</strong>
+            </div>
+          )}
         </div>
         <div className="absolute -right-10 -bottom-10 opacity-10 blur-xl group-hover:opacity-20 transition-opacity pointer-events-none">
            <Wand2 size={120} className="text-blue-500" />
@@ -518,9 +514,11 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       
       {/* Stripe Payment Modal overlay */}
       <PaymentModal 
-        clientSecret={clientSecret} 
+        isOpen={isPaymentModalOpen}
+        availableProducts={['autofill', 'fullpack']}
+        directCheckoutProductId="autofill"
         vin={vinQuery}
-        onClose={() => setClientSecret('')} 
+        onClose={() => setIsPaymentModalOpen(false)} 
         onSuccess={handlePaymentSuccess} 
       />
     </div>

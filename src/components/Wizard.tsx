@@ -16,6 +16,7 @@ export interface VehicleData {
   rangeOver50km: boolean | null;
   co2Under50g: boolean | null;
   acceptedTerms: boolean;
+  unlockedProducts: string[];
 }
 
 const initialData: VehicleData = {
@@ -28,6 +29,7 @@ const initialData: VehicleData = {
   rangeOver50km: null,
   co2Under50g: null,
   acceptedTerms: false,
+  unlockedProducts: [],
 };
 
 export default function Wizard() {
@@ -74,7 +76,7 @@ export default function Wizard() {
         >
           {step === 1 && <StepVehicle data={data} updateData={updateData} onNext={handleNext} />}
           {step === 2 && <StepHybrid data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}
-          {step === 3 && <StepResult data={data} onBack={handleBack} onReset={handleReset} />}
+          {step === 3 && <StepResult data={data} updateData={updateData} onBack={handleBack} onReset={handleReset} />}
         </motion.div>
       </AnimatePresence>
     </div>
