@@ -33,7 +33,7 @@ export default function StepHybrid({ data, updateData, onNext, onBack }: StepHyb
           }`}
         >
           <Check size={20} className={value === true ? "text-blue-500" : ""} />
-          <span className="font-semibold">OUI</span>
+          <span className="font-semibold">SIM</span>
         </button>
         <button
           onClick={() => onChange(false)}
@@ -44,7 +44,7 @@ export default function StepHybrid({ data, updateData, onNext, onBack }: StepHyb
           }`}
         >
           <X size={20} />
-          <span className="font-semibold">NON</span>
+          <span className="font-semibold">NÃO</span>
         </button>
       </div>
     </div>
@@ -56,19 +56,19 @@ export default function StepHybrid({ data, updateData, onNext, onBack }: StepHyb
         <button onClick={onBack} className="p-2 -ml-2 mb-4 text-zinc-400 hover:text-white transition-colors">
           <ArrowLeft size={24} />
         </button>
-        <h2 className="text-2xl font-bold text-white mb-2">Critères Hybride</h2>
-        <p className="text-zinc-400">Répondez à ces questions simples pour affiner la simulation de votre hybride.</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Critérios Híbrido</h2>
+        <p className="text-zinc-400">Responda a estas questões simples para refinar a simulação do seu híbrido.</p>
       </div>
 
       <div className="flex flex-col w-full">
         <BinaryQuestion
-          question={<span>L'autonomie en mode 100% électrique est-elle <strong>supérieure à 50 km</strong> ?</span>}
+          question={<span>A autonomia em modo 100% elétrico é <strong>superior a 50 km</strong>?</span>}
           value={data.rangeOver50km}
           onChange={(val) => updateData({ rangeOver50km: val })}
         />
         
         <BinaryQuestion
-          question={<span>Les émissions de CO2 sont-elles <strong>inférieures à 50 g/km</strong> ?</span>}
+          question={<span>As emissões de CO2 são <strong>inferiores a 50 g/km</strong>?</span>}
           value={data.co2Under50g}
           onChange={(val) => updateData({ co2Under50g: val })}
         />

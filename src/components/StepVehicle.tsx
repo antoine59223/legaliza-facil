@@ -26,7 +26,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     'Maserati', 'Mazda', 'McLaren', 'Mercedes-Benz', 'Mini', 'Mitsubishi', 
     'Nissan', 'Opel', 'Peugeot', 'Porsche', 'Renault', 'Rolls-Royce', 
     'Seat', 'Skoda', 'Smart', 'Subaru', 'Suzuki', 'Tesla', 'Toyota', 
-    'Volkswagen', 'Volvo', 'Autre...'
+    'Volkswagen', 'Volvo', 'Outro...'
   ];
 
   const MODELS_BY_BRAND: Record<string, string[]> = {
@@ -65,7 +65,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
 
   const getAvailableModels = () => {
     if (!data.brand) return [];
-    return MODELS_BY_BRAND[data.brand] || ['Autre modèle...'];
+    return MODELS_BY_BRAND[data.brand] || ['Outro modelo...'];
   };
 
   useEffect(() => {
@@ -137,30 +137,30 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-2">Detalhes do Veículo</h2>
-        <p className="text-zinc-400">Insira as informações de base do veículo para la simulación.</p>
+        <p className="text-zinc-400">Insira as informações básicas do veículo para a simulação.</p>
       </div>
 
     <div className="flex flex-col gap-1 w-full">
         {isCustomBrand ? (
-          renderInput("Marque (Saisie libre)", data.brand, (val) => updateData({ brand: val }), "text", "Ex: Ferrari")
+          renderInput("Marca (Texto livre)", data.brand, (val) => updateData({ brand: val }), "text", "Ex: Ferrari")
         ) : (
-          renderSelectTrigger("Marque", data.brand, "Sélectionner la marque", () => setActiveSheet('brand'))
+          renderSelectTrigger("Marca", data.brand, "Selecionar a marca", () => setActiveSheet('brand'))
         )}
         
         {isCustomModel ? (
-          renderInput("Modèle (Saisie libre)", data.model, (val) => updateData({ model: val }), "text", "Ex: 458 Italia")
+          renderInput("Modelo (Texto livre)", data.model, (val) => updateData({ model: val }), "text", "Ex: 458 Italia")
         ) : (
-          renderSelectTrigger("Modèle", data.model, "Sélectionner le modèle", () => {
+          renderSelectTrigger("Modelo", data.model, "Selecionar o modelo", () => {
             if (data.brand) setActiveSheet('model');
           }, !data.brand)
         )}
         
-        {renderSelectTrigger("Année d'immatriculation", data.year, "Sélectionner...", () => setActiveSheet('year'))}
+        {renderSelectTrigger("Ano de matrícula", data.year, "Selecionar...", () => setActiveSheet('year'))}
         
-        {renderSelectTrigger("Type de Carburant", data.fuelType, "Sélectionner...", () => setActiveSheet('fuel'))}
+        {renderSelectTrigger("Tipo de Combustível", data.fuelType, "Selecionar...", () => setActiveSheet('fuel'))}
 
         {renderInput(
-          "Cylindrée (cc)", 
+          "Cilindrada (cc)", 
           data.engineCapacity, 
           (val) => { updateData({ engineCapacity: val }); setAutoFilled(false); }, 
           "number", 
@@ -169,7 +169,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             <button
               onClick={() => setActiveSheet('engineCapacity')}
               className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-colors flex items-center gap-2 text-sm font-medium"
-              title="Voir les motorisations connues"
+              title="Ver motorizações conhecidas"
             >
               <Wand2 size={18} />
               <span className="hidden sm:inline">Auto</span>
@@ -177,12 +177,12 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           ) : undefined
         )}
 
-        {renderInput("Émissions CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120")}
+        {renderInput("Emissões CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120")}
         
         {autoFilled && availableSpecs.length === 1 && (
           <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 mb-4 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
             <Wand2 size={16} />
-            Motorisation unique détectée, pré-remplie automatiquement !
+            Motorização única detetada e preenchida!
           </div>
         )}
       </div>
@@ -203,13 +203,13 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       {/* iOS Style Action Sheets (Bottom Sheets) */}
       
       {/* 1. Brand Sheet */}
-      <BottomSheet isOpen={activeSheet === 'brand'} onClose={() => setActiveSheet(null)} title="Marque">
+      <BottomSheet isOpen={activeSheet === 'brand'} onClose={() => setActiveSheet(null)} title="Marca">
         <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
           {BRANDS.map(brand => (
             <button
               key={brand}
               onClick={() => {
-                if (brand === 'Autre...') {
+                if (brand === 'Outro...') {
                   setIsCustomBrand(true);
                   setIsCustomModel(true);
                   updateData({ brand: '', model: '' });
@@ -233,14 +233,14 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </BottomSheet>
 
       {/* 2. Model Sheet */}
-      <BottomSheet isOpen={activeSheet === 'model'} onClose={() => setActiveSheet(null)} title="Modèle">
+      <BottomSheet isOpen={activeSheet === 'model'} onClose={() => setActiveSheet(null)} title="Modelo">
         <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
-          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 ml-2">Modèles {data.brand}</div>
-          {[...getAvailableModels(), 'Autre modèle...'].map(model => (
+          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 ml-2">Modelos {data.brand}</div>
+          {[...getAvailableModels(), 'Outro modelo...'].map(model => (
             <button
               key={model}
               onClick={() => {
-                if (model === 'Autre modèle...') {
+                if (model === 'Outro modelo...') {
                   setIsCustomModel(true);
                   updateData({ model: '' });
                   setActiveSheet(null);
@@ -262,7 +262,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </BottomSheet>
 
       {/* 3. Year Sheet */}
-      <BottomSheet isOpen={activeSheet === 'year'} onClose={() => setActiveSheet(null)} title="Année">
+      <BottomSheet isOpen={activeSheet === 'year'} onClose={() => setActiveSheet(null)} title="Ano">
         <div className="flex flex-col gap-1 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
           {YEARS.map(year => (
             <button
@@ -282,7 +282,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </BottomSheet>
 
       {/* 4. Engine Capacity Sheet */}
-      <BottomSheet isOpen={activeSheet === 'engineCapacity'} onClose={() => setActiveSheet(null)} title="Cylindrée (Motorisation)">
+      <BottomSheet isOpen={activeSheet === 'engineCapacity'} onClose={() => setActiveSheet(null)} title="Cilindrada (Motorização)">
         <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
           {availableSpecs.map((spec, index) => (
             <button
@@ -311,7 +311,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </BottomSheet>
 
       {/* 5. Fuel Type Sheet */}
-      <BottomSheet isOpen={activeSheet === 'fuel'} onClose={() => setActiveSheet(null)} title="Type de Carburant">
+      <BottomSheet isOpen={activeSheet === 'fuel'} onClose={() => setActiveSheet(null)} title="Tipo de Combustível">
         <div className="flex flex-col gap-2">
           {FUEL_TYPES.map(fuel => (
             <button

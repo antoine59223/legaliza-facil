@@ -25,7 +25,7 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
           setError(null);
         }
       } catch (err: any) {
-        if (isMounted) setError(err.message || 'Erreur lors de la récupération des données.');
+        if (isMounted) setError(err.message || 'Erro na obtenção dos dados.');
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -54,7 +54,7 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
         </button>
         <button 
           onClick={onReset}
-          title="Nouvelle simulation" 
+          title="Nova simulação" 
           className="w-10 h-10 rounded-full bg-blue-500/10 hover:bg-blue-500/20 flex items-center justify-center text-blue-400 transition-colors"
         >
           <Car size={20} />
@@ -65,14 +65,14 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
         <h2 className="text-2xl font-bold text-white mb-2">
           {data.brand} {data.model}
         </h2>
-        <p className="text-zinc-400">Valeurs extraites en direct du simulateur officiel portugais.</p>
+        <p className="text-zinc-400">Valores extraídos em tempo real do simulador oficial português.</p>
       </div>
 
       {/* Loading State */}
       {loading && (
         <div className="bg-black/20 rounded-2xl p-8 mb-8 border border-white/5 flex flex-col items-center justify-center gap-4 animate-pulse">
           <Loader2 size={32} className="text-blue-500 animate-spin" />
-          <p className="text-zinc-400 text-center text-sm">Récupération des données depuis le tunnel sécurisé (Proxy)...</p>
+          <p className="text-zinc-400 text-center text-sm">A obter dados do portal das finanças...</p>
         </div>
       )}
 
@@ -80,9 +80,9 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
       {error && !loading && (
         <div className="bg-red-500/10 rounded-2xl p-6 mb-8 border border-red-500/20 flex flex-col items-center text-center gap-3">
           <AlertTriangle size={32} className="text-red-400" />
-          <p className="text-red-300 font-medium">Échec de la récupération</p>
+          <p className="text-red-300 font-medium">Falha na obtenção</p>
           <p className="text-red-400/80 text-sm">{error}</p>
-          <button onClick={() => window.location.reload()} className="mt-2 text-sm text-red-300 underline">Réessayer</button>
+          <button onClick={() => window.location.reload()} className="mt-2 text-sm text-red-300 underline">Tentar novamente</button>
         </div>
       )}
 
@@ -90,18 +90,18 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
       {!loading && !error && taxes && (
         <div className="flex flex-col gap-4 mb-8">
           <div className="bg-blue-600/10 rounded-2xl p-5 border border-blue-500/20 flex flex-col gap-1 items-center justify-center shadow-[0_0_30px_rgba(0,87,255,0.1)]">
-            <span className="text-blue-400 font-medium tracking-wide uppercase text-xs">ISV Estimé (Total)</span>
+            <span className="text-blue-400 font-medium tracking-wide uppercase text-xs">ISV Estimado (Total)</span>
             <span className="text-4xl font-bold text-white tracking-tight">{taxes.isv}</span>
           </div>
           
           <div className="bg-black/20 rounded-2xl p-5 border border-white/5 flex flex-col gap-1 items-center justify-center">
-            <span className="text-zinc-400 tracking-wide uppercase text-xs">IUC Estimé</span>
+            <span className="text-zinc-400 tracking-wide uppercase text-xs">IUC Estimado</span>
             <span className="text-xl font-medium text-white tracking-tight">{taxes.iuc}</span>
           </div>
 
           <div className="bg-black/20 rounded-2xl p-4 mt-2 border border-white/5">
-            <SummaryItem label="Année" value={data.year} />
-            <SummaryItem label="Cylindrée" value={`${data.engineCapacity} cc`} />
+            <SummaryItem label="Ano" value={data.year} />
+            <SummaryItem label="Cilindrada" value={`${data.engineCapacity} cc`} />
             <SummaryItem label="CO2" value={`${data.co2} g/km`} />
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function StepResult({ data, onBack, onReset }: StepResultProps) {
 
       <div className="flex items-center gap-2 justify-center text-xs text-zinc-500 mt-2">
         <CheckCircle size={14} className="text-zinc-600" />
-        <p>Données brutes via API (impostosobreveiculos.info)</p>
+        <p>Dados brutos via API (impostosobreveiculos.info)</p>
       </div>
     </div>
   );
