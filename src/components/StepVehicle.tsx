@@ -194,8 +194,17 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   // Render a mobile-friendly text input field
   const renderInput = (label: string, value: string, onChange: (val: string) => void, type = "text", placeholder = "", rightElement?: React.ReactNode, readOnly: boolean = false) => (
     <div className="flex flex-col gap-1.5 mb-4 relative">
-      <label className="text-sm font-medium text-zinc-400 ml-1">
-        {label} {readOnly && <Lock size={12} className="inline ml-1 text-blue-400" />}
+      <label className="text-sm font-medium text-zinc-400 ml-1 flex items-center gap-1.5">
+        {label} 
+        {readOnly && (
+          <button 
+            onClick={() => setAutoFilled(false)} 
+            className="hover:text-blue-300 transition-colors"
+            title="Clique para editar manualmente"
+          >
+            <Lock size={12} className="text-blue-400" />
+          </button>
+        )}
       </label>
       <div className="relative w-full">
         <input
@@ -330,10 +339,18 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               <span className="hidden sm:inline">Auto</span>
             </button>
           ) : undefined,
-          autoFilled
+          autoFilled && !!data.engineCapacity
         )}
 
-        {renderInput("Emissões CO2 (g/km)", data.co2, (val) => { updateData({ co2: val }); setAutoFilled(false); }, "number", "Ex: 120", undefined, autoFilled)}
+        {renderInput(
+          "Emissões CO2 (g/km)", 
+          data.co2, 
+          (val) => { updateData({ co2: val }); setAutoFilled(false); }, 
+          "number", 
+          "Ex: 120", 
+          undefined, 
+          autoFilled && !!data.co2
+        )}
         
         {autoFilled && availableSpecs.length === 1 && (
           <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 mb-4 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
