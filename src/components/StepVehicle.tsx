@@ -357,15 +357,12 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           autoFilled && !!data.co2
         )}
 
-        {/* Hybrid CO2 hint: appears when the vehicle is PHEV/Hybrid and CO2 is empty after official search */}
-        {autoFilled && !data.co2 && ((() => {
-          const ft = String(data.fuelType || '').toLowerCase();
-          return ft.includes('híbrido') || ft.includes('hibrido') || ft.includes('hybrid') || ft.includes('phev');
-        })()) && (
+        {/* CO2 missing hint: show for ALL vehicles when CO2 is empty after official search (registry doesn't include CO2) */}
+        {autoFilled && !data.co2 && (
           <div className="-mt-2 mb-4 flex gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs leading-relaxed">
             <span className="text-lg leading-none">⚠️</span>
             <span>
-              <strong>Veículo Híbrido detetado:</strong> O CO2 oficial depende das opções do seu veículo. Por favor insira o valor do seu certificado de conformidade <strong>(Casa V.7)</strong>, geralmente cerca de <strong>49&nbsp;g/km</strong> para este modelo.
+              <strong>CO2 não encontrado no registo.</strong> O registo português não inclui esta informação. Insira o valor do seu <strong>Certificado de Conformidade (Casa V.7)</strong> — geralmente indicado no documento em papel que acompanhou o veículo na importação.
             </span>
           </div>
         )}
