@@ -282,7 +282,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
                 setVinQuery(e.target.value);
                 setVinError('');
               }}
-              placeholder="Matrícula ou Nº Quadro (VIN)"
+              placeholder="Ex: AB-123-CD (FR) • 1234-ABC (ES) • AB12 CDE (UK)"
               className="flex-1 bg-black/60 border border-blue-500/20 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-400 uppercase font-medium shadow-inner"
               onKeyDown={(e) => e.key === 'Enter' && handleVinSearchClick()}
             />
@@ -300,25 +300,12 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               A processar o pagamento e a pesquisar na base de dados europeia...
             </div>
           )}
-          {/* Format hint: warn before payment if plate doesn't look Portuguese */}
-          {vinQuery.trim().length >= 6 && (() => {
-            // Portuguese plate formats: 00-AA-00, AA-00-00, 00-00-AA, and variations without dashes
-            const clean = vinQuery.replace(/-/g, '').toUpperCase();
-            const isPortuguese = /^[0-9]{2}[A-Z]{2}[0-9]{2}$/.test(clean) || // 00-AA-00
-                                 /^[A-Z]{2}[0-9]{2}[A-Z]{2}$/.test(clean) ||  // AA-00-AA
-                                 /^[0-9]{2}[0-9]{2}[A-Z]{2}$/.test(clean) ||  // 00-00-AA
-                                 /^[A-Z]{2}[0-9]{2}[0-9]{2}$/.test(clean) ||  // AA-00-00
-                                 /^[A-HJ-NPR-Z0-9]{17}$/.test(clean);         // VIN
-            if (!isPortuguese) {
-              return (
-                <div className="flex gap-2 text-amber-300 text-xs mt-1 p-2.5 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                  <span className="text-base leading-none">⚠️</span>
-                  <span>Esta matrícula não parece ser portuguesa. Os formatos válidos são: <strong>AA-00-00</strong>, <strong>00-AA-00</strong> ou <strong>00-00-AA</strong>. Para prosseguir, verifique o formato.</span>
-                </div>
-              );
-            }
-            return null;
-          })()}
+          {/* Supported countries info */}
+          {!vinError && !isSearchingVin && vinQuery.length < 4 && (
+            <div className="text-zinc-500 text-xs mt-1 px-1">
+              🇫🇷 🇩🇪 🇪🇸 🇬🇧 🇧🇪 🇳🇱 🇮🇹 🇵🇹 + mais países européus
+            </div>
+          )}
           {vinError && (
             <div className="text-red-400 text-sm mt-1 bg-red-500/10 p-3 rounded-lg border border-red-500/20 flex flex-col gap-1">
               <span className="font-semibold">❌ {vinError}</span>
