@@ -262,7 +262,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     </div>
   );
   return (
-    <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
+    <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden isolation-isolate" style={{ isolation: 'isolate' }}>
       {/* Subtle glow inside the panel */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full pointer-events-none" />
       

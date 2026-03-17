@@ -168,12 +168,12 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Dark Blur Backdrop */}
       <div 
-        className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md transition-opacity" 
+        className="absolute inset-0 bg-zinc-950/95 transition-opacity" 
         onClick={closeAndReset} 
       />
       
-      {/* Modal Content - Glassmorphism */}
-      <div className={`relative bg-zinc-900 border border-white/10 rounded-3xl w-full ${clientSecret ? 'max-w-[420px]' : 'max-w-[700px]'} p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden transition-all`}>
+      {/* Modal Content - Glassmorphism (Solid bg for iOS) */}
+      <div className={`relative bg-zinc-950 border border-white/10 rounded-3xl w-full ${clientSecret ? 'max-w-[420px]' : 'max-w-[700px]'} p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-hidden transition-all isolation-isolate`} style={{ isolation: 'isolate' }}>
         
         {/* Decorative Glow */}
         <div className="absolute -top-20 -right-20 w-48 h-48 bg-blue-600/20 blur-[60px] rounded-full pointer-events-none" />

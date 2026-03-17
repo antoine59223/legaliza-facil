@@ -76,7 +76,8 @@ export default function Wizard() {
           animate={{ opacity: 1, x: 0, rotateY: 0 }}
           exit={{ opacity: 0, x: -20, rotateY: -5 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="w-full"
+          className="w-full isolation-isolate"
+          style={{ isolation: 'isolate' }}
         >
           {step === 1 && <StepVehicle data={data} updateData={updateData} onNext={handleNext} />}
           {step === 2 && <StepHybrid data={data} updateData={updateData} onNext={handleNext} onBack={handleBack} />}

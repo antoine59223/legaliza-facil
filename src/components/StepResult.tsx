@@ -300,7 +300,7 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
         )}
 
         {/* Disclaimer Block */}
-        <div className="bg-zinc-900/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+        <div className="bg-zinc-950 border border-orange-500/20 rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
           <div className="flex items-start gap-3">
             <AlertTriangle size={20} className="text-orange-400 mt-0.5 flex-shrink-0" />
             <div className="flex flex-col gap-2">
@@ -335,7 +335,7 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
             </button>
           ) : (
             <div className="border border-white/10 rounded-2xl bg-black/40 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-zinc-900/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center">
+              <div className="absolute inset-0 bg-zinc-950/95 z-10 flex flex-col items-center justify-center p-6 text-center">
                  <Lock size={32} className="text-blue-400 mb-3" />
                  <h4 className="text-white font-bold text-lg mb-2">Relatório Oficial PDF</h4>
                  <p className="text-zinc-400 text-sm mb-4 leading-relaxed">
