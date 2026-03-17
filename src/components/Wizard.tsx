@@ -4,7 +4,7 @@ import StepVehicle from './StepVehicle';
 import StepHybrid from './StepHybrid';
 import StepResult from './StepResult';
 
-export type FuelType = 'Gasolina' | 'Gasóleo' | 'Híbrido' | 'Híbrido Plug-in' | 'Elétrico';
+export type FuelType = 'Gasolina' | 'Gasóleo' | 'Híbrido' | 'Híbrido Plug-in' | 'Elétrico' | 'GPL / GNC';
 
 export interface VehicleData {
   brand: string;
@@ -13,6 +13,8 @@ export interface VehicleData {
   fuelType: FuelType | '';
   engineCapacity: string;
   co2: string;
+  wltp: boolean;
+  origin: 'UE' | 'OUTRA';
   rangeOver50km: boolean | null;
   co2Under50g: boolean | null;
   acceptedTerms: boolean;
@@ -26,6 +28,8 @@ const initialData: VehicleData = {
   fuelType: '',
   engineCapacity: '',
   co2: '',
+  wltp: false,
+  origin: 'UE',
   rangeOver50km: null,
   co2Under50g: null,
   acceptedTerms: false,

@@ -266,6 +266,8 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
 
           <div className="bg-black/20 rounded-2xl p-4 mt-2 border border-white/5">
             <SummaryItem label="Ano" value={data.year} />
+            <SummaryItem label="Origem" value={data.origin === 'UE' ? 'União Europeia' : 'Fora da UE / Importação Direta'} />
+            <SummaryItem label="Norma" value={data.wltp ? 'WLTP (Normalizado)' : 'NEDC (Antigo)'} />
             <SummaryItem label="Cilindrada" value={`${data.engineCapacity} cc`} />
             <SummaryItem label="CO2" value={`${data.co2} g/km`} />
           </div>
@@ -277,14 +279,40 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
         <p>Dados brutos via API (impostosobreveiculos.info)</p>
       </div>
 
-      {/* Elegant Warning Block */}
-      <div className="mt-8 bg-zinc-900/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-        <div className="flex items-start gap-3">
-          <AlertTriangle size={20} className="text-orange-400 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            <strong className="text-orange-400/90 font-semibold block mb-1">IMPORTANTE:</strong>
-            Este cálculo é uma simulação técnica baseada nos dados do portal 'impostosobreveiculos.info'. O valor final e legal deve ser validado junto da Alfândega ou através de um despachante oficial. O 'Legaliza Fácil' declina qualquer responsabilidade sobre divergências nos valores apresentados.
+      {/* Technical and Legal Details inspired by screenshots */}
+      <div className="mt-8 space-y-4">
+        {/* WLTP Note */}
+        <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+          <h3 className="text-blue-400 text-[10px] font-bold mb-2 uppercase tracking-widest">Norma WLTP</h3>
+          <p className="text-[11px] text-zinc-400 leading-relaxed">
+            O valor de CO2 deve ser extraído do Certificado de Conformidade (COC). Veículos matriculados a partir de 2020 são obrigatoriamente WLTP. Em caso de dúvida (NEDC vs WLTP), use o valor "Combined" do seu documento oficial.
           </p>
+        </div>
+
+        {/* Alternative Fuels Note */}
+        {(data.fuelType === 'GPL / GNC' || data.fuelType === 'Gasolina') && (
+          <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+            <h3 className="text-white text-[10px] font-bold mb-2 uppercase tracking-widest">Combustíveis Alternativos</h3>
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Veículos bi-fuel (GPL, GN ou GNC) e gasolina <strong>pagam ISV como carros a gasolina</strong>. Não são considerados híbridos nem têm benefício fiscal diferenciado em Portugal.
+            </p>
+          </div>
+        )}
+
+        {/* Disclaimer Block */}
+        <div className="bg-zinc-900/50 backdrop-blur-md border border-orange-500/20 rounded-2xl p-5 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={20} className="text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                <strong className="text-orange-400/90 font-semibold block mb-1 uppercase tracking-tight">Declinação de responsabilidade:</strong>
+                Este simulador calcula estimativas de ISV e IUC de acordo com a legislação vigente. O cálculo exato deve ser validado na Alfândega ou Autoridade Tributária antes de qualquer importação.
+              </p>
+              <button className="text-blue-400 text-left text-[11px] font-bold hover:underline">
+                Dúvidas, problemas ou sugestões? Contacte-nos abaixo.
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       

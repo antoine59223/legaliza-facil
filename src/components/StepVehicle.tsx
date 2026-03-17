@@ -12,10 +12,10 @@ interface StepProps {
   onNext: () => void;
 }
 
-const FUEL_TYPES: FuelType[] = ['Gasolina', 'Gasóleo', 'Híbrido', 'Híbrido Plug-in', 'Elétrico'];
+const FUEL_TYPES: FuelType[] = ['Gasolina', 'Gasóleo', 'Híbrido', 'Híbrido Plug-in', 'Elétrico', 'GPL / GNC'];
 
 export default function StepVehicle({ data, updateData, onNext }: StepProps) {
-  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | 'engineCapacity' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | 'engineCapacity' | 'origin' | null>(null);
   const [autoFilled, setAutoFilled] = useState(false);
   const [availableSpecs, setAvailableSpecs] = useState<Partial<VehicleData>[]>([]);
   const [isCustomBrand, setIsCustomBrand] = useState(false);
@@ -144,7 +144,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     }
   }, [data.brand, data.model, data.year, data.fuelType]);
 
-  const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2 && data.acceptedTerms;
+  const isComplete = data.brand && data.model && data.year && data.fuelType && data.engineCapacity && data.co2 && data.origin && data.acceptedTerms;
 
   const handleVinSearchClick = () => {
     if (!vinQuery.trim()) return;
@@ -367,6 +367,28 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         
         {renderSelectTrigger("Ano de matrícula", data.year, "Selecionar...", () => setActiveSheet('year'))}
         
+        {renderSelectTrigger("Origem do Veículo", data.origin === 'UE' ? 'País da União Europeia' : 'Fora da União Europeia', "Selecionar origem", () => setActiveSheet('origin'))}
+
+        {/* WLTP Toggle */}
+        <div className="flex flex-col gap-2 mb-4">
+          <div 
+            className={`flex items-start justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
+              data.wltp ? 'bg-blue-600/10 border-blue-500/30' : 'bg-white/5 border-white/5'
+            }`}
+            onClick={() => updateData({ wltp: !data.wltp })}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center transition-colors ${data.wltp ? 'bg-blue-600 border-blue-500' : 'bg-zinc-800 border-zinc-700'}`}>
+                {data.wltp && <CheckSquare size={14} className="text-white" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white font-medium">Norma WLTP</span>
+                <span className="text-[11px] text-zinc-500 leading-tight mt-0.5">Ative apenas se homologado WLTP (geralmente carros após 2018). Em caso de dúvida, deixe desativado.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {renderSelectTrigger("Tipo de Combustível", data.fuelType, "Selecionar...", () => setActiveSheet('fuel'))}
 
         {(data.fuelType === 'Híbrido' || data.fuelType === 'Híbrido Plug-in') && (
@@ -589,6 +611,31 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               </button>
             );
           })}
+        </div>
+      </BottomSheet>
+      
+      {/* 6. Origin Sheet */}
+      <BottomSheet isOpen={activeSheet === 'origin'} onClose={() => setActiveSheet(null)} title="Origem do Veículo">
+        <div className="flex flex-col gap-2">
+          {[
+            { id: 'UE', label: 'País da União Europeia' },
+            { id: 'OUTRA', label: 'Fora da União Europeia (Importação Direta)' }
+          ].map(origin => (
+            <button
+              key={origin.id}
+              onClick={() => {
+                updateData({ origin: origin.id as 'UE' | 'OUTRA' });
+                setActiveSheet(null);
+              }}
+              className={`w-full text-left px-6 py-4 rounded-2xl transition-all ${
+                data.origin === origin.id 
+                ? 'bg-blue-600 text-white font-medium' 
+                : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+              }`}
+            >
+              {origin.label}
+            </button>
+          ))}
         </div>
       </BottomSheet>
       

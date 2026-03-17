@@ -21,8 +21,10 @@ export function calculateISV(vehicleData: any) {
   }
   if (isvCC < 0) isvCC = 0;
 
-  // 2. Componente Ambiental (Gasolina)
-  if (vehicleData.fuelType === 'Gasolina' || vehicleData.fuelType === 'Híbrido' || vehicleData.fuelType === 'Híbrido Plug-in') {
+  // 2. Componente Ambiental (Gasolina / GPL)
+  const isGasolina = vehicleData.fuelType === 'Gasolina' || vehicleData.fuelType === 'Híbrido' || vehicleData.fuelType === 'Híbrido Plug-in' || vehicleData.fuelType === 'GPL / GNC';
+  
+  if (isGasolina) {
     if (co2 <= 99) {
       isvCO2 = (co2 * 4.62) - 427.00;
     } else if (co2 > 99 && co2 <= 115) {
@@ -37,7 +39,7 @@ export function calculateISV(vehicleData: any) {
       isvCO2 = (co2 * 205.65) - 33390.12;
     }
   } else if (vehicleData.fuelType === 'Gasóleo') {
-     // Simplifying for Gasóleo for this proxy example, but usually different table
+     // Simplifying for Gasóleo for this proxy example
      isvCO2 = (co2 * 50) - 4000; 
   }
   if (isvCO2 < 0) isvCO2 = 0;
@@ -56,24 +58,27 @@ export function calculateISV(vehicleData: any) {
   }
 
   // 4. Age Discount (Tabela D - imported used cars)
-  const registrationYear = parseInt(vehicleData.year) || new Date().getFullYear();
-  const currentYear = new Date().getFullYear(); // e.g. 2026
-  const age = currentYear - registrationYear;
-  
-  if (age >= 1) {
-    let discount = 0;
-    if (age === 1) discount = 0.20; // 20%
-    else if (age === 2) discount = 0.28;
-    else if (age === 3) discount = 0.35;
-    else if (age === 4) discount = 0.43;
-    else if (age === 5) discount = 0.52;
-    else if (age === 6) discount = 0.60;
-    else if (age === 7) discount = 0.65;
-    else if (age === 8) discount = 0.70; // 70% discount for 8y old car
-    else if (age === 9) discount = 0.75;
-    else if (age >= 10) discount = 0.80; // Max 80%
+  // Non-UE cars DO NOT get the age discount (they pay 100%)
+  if (vehicleData.origin !== 'OUTRA') {
+    const registrationYear = parseInt(vehicleData.year) || new Date().getFullYear();
+    const currentYear = new Date().getFullYear(); 
+    const age = currentYear - registrationYear;
+    
+    if (age >= 1) {
+      let discount = 0;
+      if (age === 1) discount = 0.20; 
+      else if (age === 2) discount = 0.28;
+      else if (age === 3) discount = 0.35;
+      else if (age === 4) discount = 0.43;
+      else if (age === 5) discount = 0.52;
+      else if (age === 6) discount = 0.60;
+      else if (age === 7) discount = 0.65;
+      else if (age === 8) discount = 0.70; 
+      else if (age === 9) discount = 0.75;
+      else if (age >= 10) discount = 0.80; 
 
-    totalISV = totalISV * (1 - discount); // Apply discount
+      totalISV = totalISV * (1 - discount); 
+    }
   }
 
   // Ajouter la TVA (23%) sur le véhicule "nouveau/importé" (often IVA is charged on value, ISV itself doesn't always have IVA applied in the same way for imports, but following user's original exact math case 3829.45 * 1.23 = 4710)
