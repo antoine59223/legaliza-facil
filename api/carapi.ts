@@ -122,10 +122,12 @@ function parseVehicleData(xmlText: string) {
       year = vJson?.RegistrationYear || vJson?.ManufactureYearFrom || vJson?.Year || '';
       fuelType = vJson?.FuelType?.CurrentTextValue || vJson?.FuelType || '';
 
-      const rawEngine = vJson?.EngineSize?.CurrentTextValue || vJson?.EngineSize || vJson?.cc || '';
+      // Engine size - prioritize ExtendedData.EngineCC (more precise)
+      const rawEngine = vJson?.ExtendedData?.EngineCC || vJson?.EngineSize?.CurrentTextValue || vJson?.EngineSize || vJson?.cc || '';
       engineCc = parseEngineSize(String(rawEngine));
 
-      co2 = String(vJson?.CO2Emissions?.CurrentTextValue || vJson?.CO2Emissions ||
+      // CO2 - prioritize ExtendedData.Co2
+      co2 = String(vJson?.ExtendedData?.Co2 || vJson?.CO2Emissions?.CurrentTextValue || vJson?.CO2Emissions ||
             vJson?.Co2Emissions || vJson?.co2_emissions || vJson?.Emissions?.CO2 || '').replace(/[^0-9.]/g, '');
     } catch (e) {
       console.warn('vehicleJson parse error:', e);
