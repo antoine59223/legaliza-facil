@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Wizard from './components/Wizard';
 import SplashScreen from './components/SplashScreen';
+import ErrorBoundary from './components/ErrorBoundary';
+
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -47,7 +49,10 @@ function App() {
           animate={{ opacity: showSplash ? 0 : 1, scale: showSplash ? 0.95 : 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <Wizard />
+          <ErrorBoundary>
+            <Wizard />
+          </ErrorBoundary>
+
         </motion.main>
 
         {/* Global Disclaimer Footer */}
