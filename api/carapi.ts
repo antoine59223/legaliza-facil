@@ -215,6 +215,11 @@ export default async function handler(req: any, res: any) {
         const xmlText = await apiRes.text();
 
         // Check for explicit error in response
+        if (xmlText.toLowerCase().includes('out of credit')) {
+          console.error('RegCheck error: Out of credit for user', regcheckUsername);
+          throw new Error('Conta RegCheck sem créditos. Por favor, recarregue a conta Antoine59 no site regcheck.org.uk.');
+        }
+
         if (xmlText.includes('No vehicle found') || xmlText.includes('not found') || xmlText.includes('Error')) {
           const trimmed = xmlText.replace(/<[^>]+>/g, ' ').trim().slice(0, 100);
           lastError = `${countryLabel}: ${trimmed}`;
