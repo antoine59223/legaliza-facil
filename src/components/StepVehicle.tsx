@@ -175,14 +175,15 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       }
 
       updateData({
-        brand: result.make || '',
-        model: result.model || '',
-        year: result.year?.toString() || '',
-        fuelType: result.fuel_type as FuelType || '',
-        engineCapacity: result.engine_cc?.toString() || '',
-        co2: result.co2?.toString() || '',
+        brand: String(result.make || ''),
+        model: String(result.model || ''),
+        year: String(result.year || ''),
+        fuelType: String(result.fuel_type || 'Gasolina') as FuelType,
+        engineCapacity: String(result.engine_cc || ''),
+        co2: String(result.co2 || ''),
         unlockedProducts: newUnlocked
       });
+
       
       setAutoFilled(true);
       setIsOfficialData(true);
@@ -357,12 +358,10 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         )}
 
         {/* Hybrid CO2 hint: appears when the vehicle is PHEV/Hybrid and CO2 is empty after official search */}
-        {autoFilled && !data.co2 && (
-          data.fuelType?.toLowerCase().includes('híbrido') ||
-          data.fuelType?.toLowerCase().includes('hibrido') ||
-          data.fuelType?.toLowerCase().includes('hybrid') ||
-          data.fuelType?.toLowerCase().includes('phev')
-        ) && (
+        {autoFilled && !data.co2 && ((() => {
+          const ft = String(data.fuelType || '').toLowerCase();
+          return ft.includes('híbrido') || ft.includes('hibrido') || ft.includes('hybrid') || ft.includes('phev');
+        })()) && (
           <div className="-mt-2 mb-4 flex gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs leading-relaxed">
             <span className="text-lg leading-none">⚠️</span>
             <span>
