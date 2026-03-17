@@ -298,7 +298,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               disabled={isSearchingVin || !vinQuery.trim()}
               className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-white/10 disabled:to-white/10 disabled:text-zinc-500 text-white px-4 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center min-w-[56px] gap-2 font-medium"
             >
-              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span className="hidden sm:inline">Desbloquear</span></>}
+              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span>Desbloquear Dados</span></>}
             </button>
           </div>
 
@@ -308,7 +308,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               <div className="flex items-center gap-4 opacity-50 grayscale transition-all hover:opacity-100 hover:grayscale-0">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4 w-auto" />
                 <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6 w-auto" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4 w-auto" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Google_Pay_Logo.svg" alt="Google Pay" className="h-6 w-auto" />
                 <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_Pay_logo.svg" alt="Apple Pay" className="h-6 w-auto" />
               </div>
               <div className="flex flex-col items-center gap-1.5">

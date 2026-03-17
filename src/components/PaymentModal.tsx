@@ -10,7 +10,7 @@ export type ProductId = 'autofill' | 'pdf' | 'fullpack';
 
 const PRODUCTS: Record<ProductId, { title: string; price: number; features: string[]; recommended?: boolean }> = {
   autofill: {
-    title: 'Pesquisa Automática (Cilindrada + CO2)',
+    title: 'Données Seules (Cylindrée + CO2)',
     price: 2.99,
     features: ['Preenchimento imediato', 'Dados de Registos Oficiais', 'Motorização e emissões exatas']
   },
@@ -20,9 +20,9 @@ const PRODUCTS: Record<ProductId, { title: string; price: number; features: stri
     features: ['Documento PDF formatado', 'Pronto para Autoridade Tributária', 'Cálculo de ISV detalhado']
   },
   fullpack: {
-    title: 'PACK FULL (Pesquisa + Relatório PDF Oficial)',
+    title: 'PACK FULL (Données + Rapport PDF)',
     price: 7.49,
-    features: ['Pesquisa Automática incluída', 'Relatório PDF Oficial', 'Apoio especializado (Cálculo Certificado)'],
+    features: ['Auto-Fill Premium incluído', 'Relatório PDF Oficial', 'Apoio especializado (Cálculo Certificado)'],
     recommended: true
   }
 };
@@ -75,9 +75,14 @@ function CheckoutForm({ onSuccess, amount }: { onSuccess: (pi: string) => void, 
         )}
       </button>
       
-      <p className="text-xs text-zinc-500 text-center flex items-center justify-center gap-1.5 mt-[-10px]">
-        Pagamento seguro processado pela Stripe
-      </p>
+      <div className="flex flex-col gap-2 mt-[-5px]">
+        <p className="text-[10px] text-zinc-500 text-center flex items-center justify-center gap-1.5 uppercase tracking-widest font-bold">
+          <span className="text-zinc-400">🔒</span> Paiement 100% sécurisé via Stripe
+        </p>
+        <p className="text-[10px] text-zinc-500 text-center flex items-center justify-center gap-1.5 uppercase tracking-widest font-bold">
+          <span className="text-zinc-400">⚡</span> Données officielles RegCheck
+        </p>
+      </div>
     </form>
   );
 }
@@ -216,13 +221,13 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
                     onClick={() => !isInitializing && handleSelectPlan(id)}
                     className={`relative p-6 rounded-2xl border transition-all cursor-pointer overflow-hidden flex flex-col h-full bg-gradient-to-b ${
                       product.recommended 
-                      ? 'from-blue-600/20 to-black/40 border-blue-500 hover:shadow-[0_0_30px_rgba(0,87,255,0.2)]' 
+                      ? 'from-amber-500/10 to-black/60 border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]' 
                       : 'from-white/5 to-black/40 border-white/10 hover:border-white/20'
                     } ${isInitializing && selectedProduct !== id ? 'opacity-50 grayscale' : ''}`}
                   >
                     {product.recommended && (
-                      <div className="absolute top-0 right-0 bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles size={12} /> Sugerido
+                      <div className="absolute top-0 right-0 bg-[#d4af37] text-black text-[9px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest flex items-center gap-1">
+                        <Sparkles size={10} /> MAIS POPULAR
                       </div>
                     )}
                     
