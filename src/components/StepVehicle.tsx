@@ -300,7 +300,31 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               A processar o pagamento e a pesquisar na base de dados europeia...
             </div>
           )}
-          {vinError && <span className="text-red-400 text-sm mt-1 bg-red-500/10 p-2 rounded-lg border border-red-500/20">{vinError}</span>}
+          {/* Format hint: warn before payment if plate doesn't look Portuguese */}
+          {vinQuery.trim().length >= 6 && (() => {
+            // Portuguese plate formats: 00-AA-00, AA-00-00, 00-00-AA, and variations without dashes
+            const clean = vinQuery.replace(/-/g, '').toUpperCase();
+            const isPortuguese = /^[0-9]{2}[A-Z]{2}[0-9]{2}$/.test(clean) || // 00-AA-00
+                                 /^[A-Z]{2}[0-9]{2}[A-Z]{2}$/.test(clean) ||  // AA-00-AA
+                                 /^[0-9]{2}[0-9]{2}[A-Z]{2}$/.test(clean) ||  // 00-00-AA
+                                 /^[A-Z]{2}[0-9]{2}[0-9]{2}$/.test(clean) ||  // AA-00-00
+                                 /^[A-HJ-NPR-Z0-9]{17}$/.test(clean);         // VIN
+            if (!isPortuguese) {
+              return (
+                <div className="flex gap-2 text-amber-300 text-xs mt-1 p-2.5 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                  <span className="text-base leading-none">⚠️</span>
+                  <span>Esta matrícula não parece ser portuguesa. Os formatos válidos são: <strong>AA-00-00</strong>, <strong>00-AA-00</strong> ou <strong>00-00-AA</strong>. Para prosseguir, verifique o formato.</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
+          {vinError && (
+            <div className="text-red-400 text-sm mt-1 bg-red-500/10 p-3 rounded-lg border border-red-500/20 flex flex-col gap-1">
+              <span className="font-semibold">❌ {vinError}</span>
+              <span className="text-xs text-red-400/70">Verifique se a matrícula está no formato correto (ex: AJ-89-DH) e tente novamente.</span>
+            </div>
+          )}
           {!isSearchingVin && (
             <div className="flex items-center justify-center gap-2 text-blue-200 text-sm mt-2 p-3 bg-blue-600/10 rounded-xl border border-blue-500/20">
               Desbloqueie os dados oficiais europeus por <strong className="text-white"> 2,99€</strong>
