@@ -10,9 +10,9 @@ export type ProductId = 'autofill' | 'pdf' | 'fullpack';
 
 const PRODUCTS: Record<ProductId, { title: string; price: number; features: string[]; recommended?: boolean }> = {
   autofill: {
-    title: 'Données Seules (Cylindrée + CO2)',
+    title: 'Dados Simples (Cilindrada + CO2)',
     price: 2.99,
-    features: ['Preenchimento imediato', 'Dados de Registos Oficiais', 'Motorização e emissões exatas']
+    features: ['Preenchimento imediato', 'Dados de Registos Oficiais', 'Marca, Modelo e Emissões']
   },
   pdf: {
     title: 'Relatório Oficial PDF (Apenas)',
@@ -20,9 +20,9 @@ const PRODUCTS: Record<ProductId, { title: string; price: number; features: stri
     features: ['Documento PDF formatado', 'Pronto para Autoridade Tributária', 'Cálculo de ISV detalhado']
   },
   fullpack: {
-    title: 'PACK FULL (Données + Rapport PDF)',
+    title: 'PACK FULL (Dados + Relatório PDF)',
     price: 7.49,
-    features: ['Auto-Fill Premium incluído', 'Relatório PDF Oficial', 'Apoio especializado (Cálculo Certificado)'],
+    features: ['Auto-Fill de todos os dados', 'Relatório PDF Oficial detalhado', 'Estatísticas de mercado e suporte'],
     recommended: true
   }
 };
@@ -77,10 +77,10 @@ function CheckoutForm({ onSuccess, amount }: { onSuccess: (pi: string) => void, 
       
       <div className="flex flex-col gap-2 mt-[-5px]">
         <p className="text-[10px] text-zinc-500 text-center flex items-center justify-center gap-1.5 uppercase tracking-widest font-bold">
-          <span className="text-zinc-400">🔒</span> Paiement 100% sécurisé via Stripe
+          <span className="text-zinc-400">🔒</span> Pagamento 100% seguro via Stripe
         </p>
         <p className="text-[10px] text-zinc-500 text-center flex items-center justify-center gap-1.5 uppercase tracking-widest font-bold">
-          <span className="text-zinc-400">⚡</span> Données officielles RegCheck
+          <span className="text-zinc-400">⚡</span> Dados oficiais RegCheck
         </p>
       </div>
     </form>
@@ -197,9 +197,9 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
         {!clientSecret && !directCheckoutProductId && (
           <div className="relative z-10 animate-in slide-in-from-left-4 duration-300">
             <div className="mb-6 text-center">
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Passe a Premium ⚡️</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Acesso Premium ⚡️</h3>
               <p className="text-zinc-400 text-sm md:text-base leading-relaxed max-w-sm mx-auto">
-                Desbloqueie ferramentas exclusivas para a sua simulação de impostos automóvel.
+                Selecione a opção para obter os dados oficiais do veículo.
               </p>
             </div>
             
@@ -209,7 +209,7 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
               </div>
             )}
 
-            <div className={`grid gap-4 ${availableProducts.length > 1 ? 'md:grid-cols-2' : 'md:grid-cols-1 max-w-sm mx-auto'}`}>
+            <div className="flex flex-col gap-4 max-w-md mx-auto">
               {availableProducts.map(id => {
                 const product = PRODUCTS[id];
                 const isLoader = isInitializing && selectedProduct === id;
@@ -219,15 +219,15 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
                   <div 
                     key={id}
                     onClick={() => !isInitializing && handleSelectPlan(id)}
-                    className={`relative p-6 rounded-2xl border transition-all cursor-pointer overflow-hidden flex flex-col h-full bg-gradient-to-b ${
+                    className={`relative p-5 rounded-2xl border transition-all cursor-pointer overflow-hidden flex flex-col bg-gradient-to-b ${
                       product.recommended 
-                      ? 'from-amber-500/10 to-black/60 border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]' 
-                      : 'from-white/5 to-black/40 border-white/10 hover:border-white/20'
+                      ? 'from-amber-500/10 to-black/60 border-[#d4af37] shadow-[0_4px_25px_rgba(212,175,55,0.15)] order-2 py-8' 
+                      : 'from-white/5 to-black/40 border-white/10 hover:border-white/20 order-1'
                     } ${isInitializing && selectedProduct !== id ? 'opacity-50 grayscale' : ''}`}
                   >
                     {product.recommended && (
-                      <div className="absolute top-0 right-0 bg-[#d4af37] text-black text-[9px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest flex items-center gap-1">
-                        <Sparkles size={10} /> MAIS POPULAR
+                      <div className="absolute top-0 right-0 bg-[#d4af37] text-black text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-widest flex items-center gap-1">
+                        <Sparkles size={11} /> RECOMENDADO (Poupe 1,50€)
                       </div>
                     )}
                     
@@ -247,9 +247,9 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
                     
                     <button 
                       disabled={isInitializing}
-                      className={`w-full py-3 rounded-xl flex justify-center items-center font-semibold transition-all ${
+                      className={`w-full py-4 rounded-xl flex justify-center items-center font-bold text-lg transition-all ${
                         product.recommended 
-                        ? 'bg-blue-600 text-white' 
+                        ? 'bg-[#d4af37] text-black shadow-lg' 
                         : 'bg-white/10 text-white hover:bg-white/20'
                       }`}
                     >

@@ -203,6 +203,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       setAutoFilled(true);
       setIsOfficialData(true);
       if (result.make && !BRANDS.includes(result.make)) setIsCustomBrand(true);
+      if (result.model) setIsCustomModel(true); // Always use text input for model after official search for precision
       
     } catch (err: any) {
       setVinError(err.message || 'Erro ao preencher dados do veículo.');
@@ -298,23 +299,33 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               disabled={isSearchingVin || !vinQuery.trim()}
               className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-white/10 disabled:to-white/10 disabled:text-zinc-500 text-white px-4 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center min-w-[56px] gap-2 font-medium"
             >
-              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span>Desbloquear Dados</span></>}
+              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span>Desbloquear Dados Automáticos</span></>}
             </button>
           </div>
 
           {/* Reassurance Elements */}
           {!isSearchingVin && (
             <div className="mt-4 flex flex-col items-center gap-3 animate-in fade-in duration-700">
-              <div className="flex items-center gap-4 opacity-50 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4 w-auto" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6 w-auto" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Google_Pay_Logo.svg" alt="Google Pay" className="h-6 w-auto" />
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_Pay_logo.svg" alt="Apple Pay" className="h-6 w-auto" />
+              <div className="flex items-center gap-5 opacity-40 grayscale transition-all hover:opacity-100 hover:grayscale-0">
+                {/* Visa Icon */}
+                <svg width="40" height="13" viewBox="0 0 40 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-auto">
+                  <path d="M15.42 0.28003L12.82 12.55H10.18L8.2 4.02003C8.02 3.23003 7.91 2.94003 7.37 2.65003C6.46 2.16003 4.96 1.70003 3.61 1.41003L3.73 0.90003H8.16C9.22 0.90003 10.18 1.63003 10.42 2.87003L11.39 8.86003L13.88 0.28003H15.42ZM28.98 8.65003C29 5.86003 25.13 5.71003 25.15 4.10003C25.15 3.61003 25.64 3.09003 26.68 2.95003C27.19 2.88003 28.58 2.81003 30.16 3.53003L30.68 1.10003C29.28 0.59003 27.81 0.28003 26.29 0.28003C23.36 0.28003 21.31 1.84003 21.29 4.06003C21.27 6.94003 25.18 7.10003 25.16 8.89003C25.15 9.44003 24.62 10.03 23.47 10.18C22.25 10.34 20.88 10.19 19.34 9.53003L18.81 12.01C20.37 12.72 22.11 13.06 23.85 13.06C26.96 13.06 28.97 11.51 28.98 8.65003ZM39.73 0.28003L37.31 12.55H34.86L38.48 4.02003C38.66 3.23003 38.77 2.94003 39.31 2.65003C40.22 2.16003 40.72 1.70003 42.01 1.41003L41.93 0.90003H39.73ZM19.29 0.28003L16.29 12.55H13.88L16.88 0.28003H19.29Z" fill="white"/>
+                </svg>
+                {/* Mastercard Icon */}
+                <svg width="24" height="15" viewBox="0 0 24 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-auto text-white">
+                  <circle cx="7.5" cy="7.5" r="7.5" fill="#EB001B"/>
+                  <circle cx="16.5" cy="7.5" r="7.5" fill="#F79E1B" fillOpacity="0.8"/>
+                </svg>
+                {/* Apple Pay Icon */}
+                <svg width="36" height="15" viewBox="0 0 36 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-auto">
+                  <path d="M5.895 4.335c0-2.4 1.95-4.32 4.35-4.335 2.4-.015 4.35 1.905 4.35 4.32s-1.95 4.35-4.35 4.35c-2.4 0-4.35-1.935-4.35-4.335zm5.745 0c0-1.635-1.335-2.955-2.985-2.94a2.95 2.95 0 00-2.955 2.955c0 1.635 1.335 2.97 2.985 2.97a2.956 2.956 0 002.955-2.985z" fill="white"/>
+                  <path d="M20.25 15V0h1.41v15H20.25zM25.5 15l1.65-4.875h3.69L32.49 15h1.53l-4.14-11.895h-1.515L24.12 15h1.38zm1.965-5.91L28.98 4.5l1.515 4.59h-3.03z" fill="white"/>
+                </svg>
               </div>
               <div className="flex flex-col items-center gap-1.5">
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-full border border-white/5">
                   <ShieldCheck size={12} className="text-green-500" />
-                  Paiement Sécurisé SSL
+                  Pagamento Seguro SSL
                 </div>
                 <p className="text-[11px] text-zinc-500 font-medium">
                   Dados oficiais provenientes dos registos de matrícula
