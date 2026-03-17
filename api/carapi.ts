@@ -18,9 +18,17 @@ function detectCountryEndpoint(plate: string): { endpoint: string; countryLabel:
 
   const candidates: { endpoint: string; countryLabel: string }[] = [];
 
-  // France: AB-123-CD (7 chars: 2L+3N+2L) — since 2009
+  // France new: AB-123-CD (2L+3N+2L, 7 chars) — since 2009
   if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(p)) {
     candidates.push({ endpoint: 'CheckFrance', countryLabel: 'France' });
+  }
+  // France old (pre-2009): 1-4 digits + 1-3 letters + 2-digit department (e.g. 380DHS59, 1234AB75)
+  if (/^[0-9]{1,4}[A-Z]{1,3}[0-9]{2}$/.test(p)) {
+    candidates.push({ endpoint: 'CheckFrance', countryLabel: 'France (ancien)' });
+  }
+  // France old regional: department (1-3 digits) + letters + numbers e.g. 38-DH-1234
+  if (/^[0-9]{2,3}[A-Z]{2,3}[0-9]{2,4}$/.test(p)) {
+    candidates.push({ endpoint: 'CheckFrance', countryLabel: 'France (ancien)' });
   }
 
   // Germany: 1-3 letters + 1-2 letters + 1-4 digits (e.g. M-AB-1234, BER-XY-123)
