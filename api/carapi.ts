@@ -158,7 +158,30 @@ export default async function handler(req: any, res: any) {
     }
 
     const regcheckUsername = process.env.REGCHECK_USERNAME || 'Antoine59';
-    const candidates = detectCountryEndpoint(plate);
+    const countryOverride = (req.query.country || req.body?.country || '') as string;
+
+    // Map country name to RegCheck endpoint
+    const COUNTRY_ENDPOINT_MAP: Record<string, string> = {
+      'France': 'CheckFrance',
+      'Spain': 'CheckSpain',
+      'Germany': 'CheckGermany',
+      'UK': 'Check',
+      'Belgium': 'CheckBelgium',
+      'Netherlands': 'CheckNetherlands',
+      'Italy': 'CheckItaly',
+      'Portugal': 'CheckPortugal',
+      'Switzerland': 'CheckSwitzerland',
+      'Austria': 'CheckAustria',
+      'Sweden': 'CheckSweden',
+    };
+
+    // If user manually selected a country, put it first in candidates
+    let candidates = detectCountryEndpoint(plate);
+    if (countryOverride && COUNTRY_ENDPOINT_MAP[countryOverride]) {
+      const forcedEndpoint = { endpoint: COUNTRY_ENDPOINT_MAP[countryOverride], countryLabel: countryOverride };
+      candidates = [forcedEndpoint, ...candidates.filter(c => c.endpoint !== forcedEndpoint.endpoint)];
+      console.log(`Country override: ${countryOverride} → ${forcedEndpoint.endpoint}`);
+    }
 
     console.log(`Plate: ${plate} → candidates: ${candidates.map(c => c.endpoint).join(', ')}`);
 

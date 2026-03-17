@@ -23,6 +23,8 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [vinQuery, setVinQuery] = useState('');
   const [isSearchingVin, setIsSearchingVin] = useState(false);
   const [vinError, setVinError] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
+
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isOfficialData, setIsOfficialData] = useState(false);
 
@@ -158,7 +160,10 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     
     try {
       // 1. Fetch exact CarAPI data securely bypassing the mock/proxy logic
-      const response = await fetch(`/api/carapi?vin=${encodeURIComponent(vinQuery)}&payment_intent_id=${paymentIntentId}`);
+      const qs = new URLSearchParams({ vin: vinQuery, payment_intent_id: paymentIntentId });
+      if (selectedCountry) qs.append('country', selectedCountry);
+      const response = await fetch(`/api/carapi?${qs.toString()}`);
+
       const result = await response.json();
       
       if (!response.ok) {
@@ -281,6 +286,8 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               onChange={(e) => {
                 setVinQuery(e.target.value);
                 setVinError('');
+                setSelectedCountry('');
+
               }}
               placeholder="Ex: AB-123-CD (FR) • 1234-ABC (ES) • AB12 CDE (UK)"
               className="flex-1 bg-black/60 border border-blue-500/20 rounded-xl px-4 py-3.5 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-400 uppercase font-medium shadow-inner"
@@ -307,11 +314,31 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             </div>
           )}
           {vinError && (
-            <div className="text-red-400 text-sm mt-1 bg-red-500/10 p-3 rounded-lg border border-red-500/20 flex flex-col gap-1">
+            <div className="text-red-400 text-sm mt-1 bg-red-500/10 p-3 rounded-lg border border-red-500/20 flex flex-col gap-2">
               <span className="font-semibold">❌ {vinError}</span>
-              <span className="text-xs text-red-400/70">Verifique se a matrícula está no formato correto (ex: AJ-89-DH) e tente novamente.</span>
+              <span className="text-xs text-red-400/70">Se a matrícula está correta, selecione manualmente o país de registo:</span>
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="bg-zinc-900 border border-red-400/30 rounded-lg px-3 py-2 text-white text-xs"
+              >
+                <option value="">País auto-detectado</option>
+                <option value="France">🇫🇷 France</option>
+                <option value="Spain">🇪🇸 Espanha</option>
+                <option value="Germany">🇩🇪 Alemanha</option>
+                <option value="UK">🇬🇧 Reino Unido</option>
+                <option value="Belgium">🇧🇪 Bélgica</option>
+                <option value="Netherlands">🇳🇱 Países Baixos</option>
+                <option value="Italy">🇮🇹 Itália</option>
+                <option value="Portugal">🇵🇹 Portugal</option>
+                <option value="Switzerland">🇨🇭 Suíça</option>
+                <option value="Austria">🇦🇹 Áustria</option>
+                <option value="Sweden">🇸🇪 Suécia</option>
+              </select>
+              <span className="text-xs text-red-400/50">Depois clique novamente na lupa para tentar de novo.</span>
             </div>
           )}
+
           {!isSearchingVin && (
             <div className="flex items-center justify-center gap-2 text-blue-200 text-sm mt-2 p-3 bg-blue-600/10 rounded-xl border border-blue-500/20">
               Desbloqueie os dados oficiais europeus por <strong className="text-white"> 2,99€</strong>
