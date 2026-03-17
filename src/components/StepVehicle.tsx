@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2, Lock } from 'lucide-react';
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
-import { lookupCarSpec } from '../utils/carSpecs';
+import { lookupCarSpec, lookupCO2 } from '../utils/carSpecs';
+
 import PaymentModal from './PaymentModal';
 
 interface StepProps {
@@ -174,13 +175,22 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
          if (!newUnlocked.includes('pdf')) newUnlocked.push('pdf');
       }
 
+      const rawCo2 = String(result.co2 || '');
+      const rawFuelType = String(result.fuel_type || 'Gasolina');
+      const rawMake = String(result.make || '');
+      const rawModel = String(result.model || '');
+      const rawYear = String(result.year || '');
+
+      // CO2 fallback: if RegCheck didn't return CO2, look it up in our local spec database
+      const co2Value = rawCo2 || lookupCO2(rawMake, rawModel, rawYear, rawFuelType);
+
       updateData({
-        brand: String(result.make || ''),
-        model: String(result.model || ''),
-        year: String(result.year || ''),
-        fuelType: String(result.fuel_type || 'Gasolina') as FuelType,
+        brand: rawMake,
+        model: rawModel,
+        year: rawYear,
+        fuelType: rawFuelType as FuelType,
         engineCapacity: String(result.engine_cc || ''),
-        co2: String(result.co2 || ''),
+        co2: co2Value,
         unlockedProducts: newUnlocked
       });
 

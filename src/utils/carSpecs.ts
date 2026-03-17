@@ -2269,20 +2269,64 @@ export const carSpecsDB: CarSpec[] = [
   { brand: 'volvo', model: 'xc70', year: 2018, fuelType: 'Gasolina', engineCapacity: '1598', co2: '130' },
   { brand: 'volvo', model: 'xc70', year: 2018, fuelType: 'Gasóleo', engineCapacity: '1499', co2: '115' },
   { brand: 'volvo', model: 'xc70', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1598', co2: '35' },
-  { brand: 'volvo', model: 'xc90', year: 2018, fuelType: 'Gasolina', engineCapacity: '1598', co2: '130' },
-  { brand: 'volvo', model: 'xc90', year: 2018, fuelType: 'Gasóleo', engineCapacity: '1499', co2: '115' },
-  { brand: 'volvo', model: 'xc90', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1598', co2: '27' },
+  // Volvo XC90 - real specs
+  { brand: 'volvo', model: 'xc90', year: 2016, fuelType: 'Gasolina', engineCapacity: '1969', co2: '198' },
+  { brand: 'volvo', model: 'xc90', year: 2016, fuelType: 'Gasóleo', engineCapacity: '1969', co2: '149' },
+  { brand: 'volvo', model: 'xc90', year: 2016, fuelType: 'Híbrido Plug-in', engineCapacity: '1969', co2: '49' },
+  { brand: 'volvo', model: 'xc90', year: 2018, fuelType: 'Gasolina', engineCapacity: '1969', co2: '192' },
+  { brand: 'volvo', model: 'xc90', year: 2018, fuelType: 'Gasóleo', engineCapacity: '1969', co2: '145' },
+  { brand: 'volvo', model: 'xc90', year: 2018, fuelType: 'Híbrido Plug-in', engineCapacity: '1969', co2: '49' },
+  { brand: 'volvo', model: 'xc90', year: 2019, fuelType: 'Gasolina', engineCapacity: '1969', co2: '192' },
+  { brand: 'volvo', model: 'xc90', year: 2019, fuelType: 'Gasóleo', engineCapacity: '1969', co2: '145' },
+  { brand: 'volvo', model: 'xc90', year: 2019, fuelType: 'Híbrido Plug-in', engineCapacity: '1969', co2: '49' },
+  { brand: 'volvo', model: 'xc90', year: 2021, fuelType: 'Gasolina', engineCapacity: '1969', co2: '210' },
+  { brand: 'volvo', model: 'xc90', year: 2021, fuelType: 'Gasóleo', engineCapacity: '1969', co2: '158' },
+  { brand: 'volvo', model: 'xc90', year: 2021, fuelType: 'Híbrido Plug-in', engineCapacity: '1969', co2: '46' },
+  { brand: 'volvo', model: 'xc90', year: 2022, fuelType: 'Gasolina', engineCapacity: '1969', co2: '215' },
+  { brand: 'volvo', model: 'xc90', year: 2022, fuelType: 'Gasóleo', engineCapacity: '1969', co2: '162' },
+  { brand: 'volvo', model: 'xc90', year: 2022, fuelType: 'Híbrido Plug-in', engineCapacity: '1969', co2: '46' },
+
 ];
 
-// Helper to look up specs
+// Helper to look up specs (exact or closest year match)
 export function lookupCarSpec(brand: string, model: string, year: string): CarSpec[] {
   if (!brand || !model || !year) return [];
-  
-  const b = brand.toLowerCase().replace('-', '').trim();
-  const m = model.toLowerCase().replace('-', '').trim();
+  const b = brand.toLowerCase().replace(/[-\s]+/g, '').trim();
+  const m = model.toLowerCase().replace(/[-\s]+/g, '').trim();
+  const y = parseInt(year, 10);
 
-  return carSpecsDB.filter(car => 
-    car.brand.toLowerCase().replace('-', '') === b && 
-    car.model.toLowerCase().replace('-', '') === m
+  const matches = carSpecsDB.filter(car =>
+    car.brand.toLowerCase().replace(/[-\s]+/g, '') === b &&
+    car.model.toLowerCase().replace(/[-\s]+/g, '') === m
   );
+  if (!matches.length) return [];
+
+  // Return exact year matches if available
+  const exact = matches.filter(c => c.year === y);
+  if (exact.length) return exact;
+
+  // Otherwise find closest year
+  const sorted = [...matches].sort((a, b) => Math.abs(a.year - y) - Math.abs(b.year - y));
+  const closestYear = sorted[0].year;
+  return matches.filter(c => c.year === closestYear);
+}
+
+// Lookup CO2 by make/model/year/fuelType — returns best match CO2 value or empty string
+export function lookupCO2(brand: string, model: string, year: string, fuelType: string): string {
+  const specs = lookupCarSpec(brand, model, year);
+  if (!specs.length) return '';
+
+  const ft = fuelType.toLowerCase();
+  let match = specs.find(s => s.fuelType.toLowerCase() === ft);
+
+  // Fuzzy fuel type match
+  if (!match) {
+    if (ft.includes('plug') || ft.includes('phev')) match = specs.find(s => s.fuelType.toLowerCase().includes('plug'));
+    else if (ft.includes('híbrido') || ft.includes('hibrido') || ft.includes('hybrid')) match = specs.find(s => s.fuelType.toLowerCase().includes('híbrido'));
+    else if (ft.includes('gasolina') || ft.includes('petrol') || ft.includes('gasoline')) match = specs.find(s => s.fuelType === 'Gasolina');
+    else if (ft.includes('gasóleo') || ft.includes('diesel')) match = specs.find(s => s.fuelType === 'Gasóleo');
+    else if (ft.includes('elétr') || ft.includes('electr')) match = specs.find(s => s.fuelType === 'Elétrico');
+  }
+
+  return match?.co2 || specs[0]?.co2 || '';
 }
