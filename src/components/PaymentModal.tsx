@@ -10,19 +10,19 @@ export type ProductId = 'autofill' | 'pdf' | 'fullpack';
 
 const PRODUCTS: Record<ProductId, { title: string; price: number; features: string[]; recommended?: boolean }> = {
   autofill: {
-    title: 'Auto-Fill Premium',
+    title: 'Pesquisa Automática (Cilindrada + CO2)',
     price: 2.99,
-    features: ['Pesquisa exata por Matrícula/VIN', 'Motorização e CO2 automáticos', 'Dados da base oficial Europeia']
+    features: ['Preenchimento imediato', 'Dados de Registos Oficiais', 'Motorização e emissões exatas']
   },
   pdf: {
-    title: 'Relatório Oficial PDF',
+    title: 'Relatório Oficial PDF (Apenas)',
     price: 5.99,
     features: ['Documento PDF formatado', 'Pronto para Autoridade Tributária', 'Cálculo de ISV detalhado']
   },
   fullpack: {
-    title: 'Pack Completo',
+    title: 'PACK FULL (Pesquisa + Relatório PDF Oficial)',
     price: 7.49,
-    features: ['Auto-Fill Premium incluído', 'Relatório Oficial PDF incluído', 'Verificação CO2 por especialista (garantia para a Alfândega)'],
+    features: ['Pesquisa Automática incluída', 'Relatório PDF Oficial', 'Apoio especializado (Cálculo Certificado)'],
     recommended: true
   }
 };

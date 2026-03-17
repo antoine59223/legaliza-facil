@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2, Lock } from 'lucide-react';
+import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
 import { lookupCarSpec, lookupCO2 } from '../utils/carSpecs';
@@ -301,6 +301,27 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
               {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span className="hidden sm:inline">Desbloquear</span></>}
             </button>
           </div>
+
+          {/* Reassurance Elements */}
+          {!isSearchingVin && (
+            <div className="mt-4 flex flex-col items-center gap-3 animate-in fade-in duration-700">
+              <div className="flex items-center gap-4 opacity-50 grayscale transition-all hover:opacity-100 hover:grayscale-0">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4 w-auto" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6 w-auto" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4 w-auto" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_Pay_logo.svg" alt="Apple Pay" className="h-6 w-auto" />
+              </div>
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                  <ShieldCheck size={12} className="text-green-500" />
+                  Paiement Sécurisé SSL
+                </div>
+                <p className="text-[11px] text-zinc-500 font-medium">
+                  Dados oficiais provenientes dos registos de matrícula
+                </p>
+              </div>
+            </div>
+          )}
           {isSearchingVin && (
             <div className="flex items-center gap-2 text-blue-400 text-sm mt-1 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 animate-pulse">
               <Loader2 size={16} className="animate-spin" />
@@ -643,7 +664,6 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         availableProducts={['autofill', 'fullpack']}
-        directCheckoutProductId="autofill"
         vin={vinQuery}
         onClose={() => setIsPaymentModalOpen(false)} 
         onSuccess={handlePaymentSuccess} 
