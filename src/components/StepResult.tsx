@@ -207,7 +207,7 @@ export default function StepResult({ data, updateData, onBack, onReset }: StepRe
 
   return (
     <div className="w-full">
-      <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative">
       {/* Dynamic Background Glow based on state */}
       <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b pointer-events-none transition-colors duration-500 ${
         error ? 'from-red-600/20 to-transparent' : 'from-blue-600/20 to-transparent'

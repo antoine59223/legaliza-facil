@@ -15,7 +15,7 @@ interface StepProps {
 const FUEL_TYPES: FuelType[] = ['Gasolina', 'Gasóleo', 'Híbrido', 'Híbrido Plug-in', 'Elétrico', 'GPL / GNC'];
 
 export default function StepVehicle({ data, updateData, onNext }: StepProps) {
-  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | 'engineCapacity' | 'origin' | null>(null);
+  const [activeSheet, setActiveSheet] = useState<'brand' | 'model' | 'year' | 'fuel' | 'engineCapacity' | 'origin' | 'country' | null>(null);
   const [autoFilled, setAutoFilled] = useState(false);
   const [availableSpecs, setAvailableSpecs] = useState<Partial<VehicleData>[]>([]);
   const [isCustomBrand, setIsCustomBrand] = useState(false);
@@ -262,7 +262,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
     </div>
   );
   return (
-    <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative overflow-hidden isolation-isolate" style={{ isolation: 'isolate' }}>
+    <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col w-full relative isolation-isolate" style={{ isolation: 'isolate' }}>
       {/* Subtle glow inside the panel */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[50px] rounded-full pointer-events-none" />
       
@@ -272,7 +272,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       </div>
 
       {/* VIN / License Plate Search Area - PREMIUM PAYWALL */}
-      <div className="mb-8 p-5 bg-gradient-to-br from-blue-900/40 to-black/40 border border-blue-500/30 rounded-2xl relative overflow-hidden group">
+      <div className="mb-8 p-5 bg-gradient-to-br from-blue-900/40 to-black/40 border border-blue-500/30 rounded-2xl relative group">
         <div className="flex flex-col gap-3 relative z-10">
           <div className="flex items-center gap-2">
             <label className="text-sm font-semibold text-blue-400">Pesquisa Automática</label>
@@ -349,24 +349,15 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             <div className="text-red-400 text-sm mt-1 bg-red-500/10 p-3 rounded-lg border border-red-500/20 flex flex-col gap-2">
               <span className="font-semibold">❌ {vinError}</span>
               <span className="text-xs text-red-400/70">Se a matrícula está correta, selecione manualmente o país de registo:</span>
-              <select
-                value={selectedCountry}
-                onChange={(e) => setSelectedCountry(e.target.value)}
-                className="bg-zinc-900 border border-red-400/30 rounded-lg px-3 py-2 text-white text-xs"
+              
+              <button
+                onClick={() => setActiveSheet('country')} 
+                className="w-full bg-zinc-900 border border-red-400/30 rounded-xl px-4 py-3 text-left flex justify-between items-center text-white"
               >
-                <option value="">País auto-detectado</option>
-                <option value="France">🇫🇷 France</option>
-                <option value="Spain">🇪🇸 Espanha</option>
-                <option value="Germany">🇩🇪 Alemanha</option>
-                <option value="UK">🇬🇧 Reino Unido</option>
-                <option value="Belgium">🇧🇪 Bélgica</option>
-                <option value="Netherlands">🇳🇱 Países Baixos</option>
-                <option value="Italy">🇮🇹 Itália</option>
-                <option value="Portugal">🇵🇹 Portugal</option>
-                <option value="Switzerland">🇨🇭 Suíça</option>
-                <option value="Austria">🇦🇹 Áustria</option>
-                <option value="Sweden">🇸🇪 Suécia</option>
-              </select>
+                <span className="text-sm">{selectedCountry || 'Selecionar País'}</span>
+                <ChevronDown size={16} className="text-red-400/50" />
+              </button>
+              
               <span className="text-xs text-red-400/50">Depois clique novamente na lupa para tentar de novo.</span>
             </div>
           )}
@@ -671,6 +662,39 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
         </div>
       </BottomSheet>
       
+      {/* 7. Country Sheet (for manual override) */}
+      <BottomSheet isOpen={activeSheet === 'country'} onClose={() => setActiveSheet(null)} title="País de Registo">
+        <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto pb-4 pr-2 custom-scrollbar">
+          {[
+            { id: '', label: 'Auto-detectar pelo formato' },
+            { id: 'France', label: '🇫🇷 França' },
+            { id: 'Spain', label: '🇪🇸 Espanha' },
+            { id: 'Germany', label: '🇩🇪 Alemanha' },
+            { id: 'UK', label: '🇬🇧 Reino Unido' },
+            { id: 'Belgium', label: '🇧🇪 Bélgica' },
+            { id: 'Netherlands', label: '🇳🇱 Países Baixos' },
+            { id: 'Italy', label: '🇮🇹 Itália' },
+            { id: 'Portugal', label: '🇵🇹 Portugal' },
+            { id: 'Switzerland', label: '🇨🇭 Suíça' },
+            { id: 'Austria', label: '🇦🇹 Áustria' },
+            { id: 'Sweden', label: '🇸🇪 Suécia' },
+          ].map(country => (
+            <button
+              key={country.id}
+              onClick={() => {
+                setSelectedCountry(country.id);
+                setActiveSheet(null);
+              }}
+              className={`w-full text-left px-5 py-3.5 rounded-xl transition-all ${
+                selectedCountry === country.id ? 'bg-blue-600 text-white font-medium' : 'hover:bg-white/5 text-zinc-300'
+              }`}
+            >
+              {country.label}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
       {/* Stripe Payment Modal overlay */}
       <PaymentModal 
         isOpen={isPaymentModalOpen}

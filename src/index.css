@@ -10,6 +10,8 @@
   * {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
   html, body {
     @apply bg-zinc-950 text-zinc-100 antialiased font-sans flex flex-col min-h-[100dvh] w-full;
