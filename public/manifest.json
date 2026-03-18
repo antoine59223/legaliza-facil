@@ -1,11 +1,12 @@
 {
-  "name": "Legaliza Fácil",
+  "name": "Legaliza Fácil - Simulateur ISV",
   "short_name": "Legaliza Fácil",
-  "description": "Simulateur Premium ISV / IUC au Portugal",
-  "start_url": ".",
+  "description": "Simulateur Premium ISV / IUC ao Portugal",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/logo.png",

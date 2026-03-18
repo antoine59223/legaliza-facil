@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const vin = paymentIntent.metadata?.vin;
       
-      console.log(`✅ [WEBHOOK] Paiement de 2.99€ validé pour la plaque/VIN : ${vin}`);
+      // Webhook verified and amount is correct
       // L'appel CarAPI sera de toute façon géré de maniere synchrone par le frontend
       // via la route /api/carapi sécurisée pour une meilleure UX (pas besoin de rafraichir).
       // Dans une appli lourde, on sauvegarderait le "credit" en bdd ici.
