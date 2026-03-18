@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2, Lock, ShieldCheck } from 'lucide-react';
+import { ChevronDown, ArrowRight, Wand2, CheckSquare, Square, Search, Loader2, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import type { VehicleData, FuelType } from './Wizard';
 import BottomSheet from './BottomSheet';
 import { lookupCarSpec, lookupCO2 } from '../utils/carSpecs';
 
 import PaymentModal from './PaymentModal';
+import type { ProductId } from './PaymentModal';
 
 interface StepProps {
   data: VehicleData;
@@ -26,6 +27,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
   const [selectedCountry, setSelectedCountry] = useState('');
 
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<ProductId>('fullpack');
   const [isOfficialData, setIsOfficialData] = useState(false);
 
   const BRANDS = [
@@ -297,9 +299,9 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
             <button
               onClick={handleVinSearchClick}
               disabled={isSearchingVin || !vinQuery.trim()}
-              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-white/10 disabled:to-white/10 disabled:text-zinc-500 text-white px-4 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center min-w-[56px] gap-2 font-medium"
+              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:from-white/10 disabled:to-white/10 disabled:text-zinc-500 text-white px-4 py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center min-w-[56px] gap-2 font-bold"
             >
-              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span>Desbloquear Dados Automáticos</span></>}
+              {isSearchingVin ? <Loader2 size={20} className="animate-spin" /> : <><Search size={18} /> <span>{selectedProductId === 'fullpack' ? 'Desbloquear Pack Full' : 'Desbloquear Dados Simples'}</span></>}
             </button>
           </div>
 
@@ -307,20 +309,25 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           {!isSearchingVin && (
             <div className="mt-4 flex flex-col items-center gap-3 animate-in fade-in duration-700">
               <div className="flex items-center gap-5 opacity-40 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-                {/* Visa Icon */}
-                <svg width="40" height="13" viewBox="0 0 40 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-auto">
-                  <path d="M15.42 0.28003L12.82 12.55H10.18L8.2 4.02003C8.02 3.23003 7.91 2.94003 7.37 2.65003C6.46 2.16003 4.96 1.70003 3.61 1.41003L3.73 0.90003H8.16C9.22 0.90003 10.18 1.63003 10.42 2.87003L11.39 8.86003L13.88 0.28003H15.42ZM28.98 8.65003C29 5.86003 25.13 5.71003 25.15 4.10003C25.15 3.61003 25.64 3.09003 26.68 2.95003C27.19 2.88003 28.58 2.81003 30.16 3.53003L30.68 1.10003C29.28 0.59003 27.81 0.28003 26.29 0.28003C23.36 0.28003 21.31 1.84003 21.29 4.06003C21.27 6.94003 25.18 7.10003 25.16 8.89003C25.15 9.44003 24.62 10.03 23.47 10.18C22.25 10.34 20.88 10.19 19.34 9.53003L18.81 12.01C20.37 12.72 22.11 13.06 23.85 13.06C26.96 13.06 28.97 11.51 28.98 8.65003ZM39.73 0.28003L37.31 12.55H34.86L38.48 4.02003C38.66 3.23003 38.77 2.94003 39.31 2.65003C40.22 2.16003 40.72 1.70003 42.01 1.41003L41.93 0.90003H39.73ZM19.29 0.28003L16.29 12.55H13.88L16.88 0.28003H19.29Z" fill="white"/>
+              <div className="flex items-center gap-6 opacity-60">
+                {/* Simplified White Icons for better mobile rendering */}
+                <svg width="34" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-auto">
+                  <path d="M13.8 15h.6l.4-2.3h-1.2l-.2.8H12l-.2.8h1.6l-.4 2.4l-.8-2.4H11.4l-.4 2.4h-.6l.4-2.4H8.6l-.2.8h.6l.1.5h-.6l-.1-.5H7.2l-.2.8h.6l.1.5h-.6l-.1-.5H5.8l-.2.8h-.6l.1-.5H4L3.8 15h.6l-.2.8h.6l.1.5h-.6l-.1-.5H5L4.8 15h.6l-.2.8h.6l.1.5h-.6l-.1-.5H6.2l-.2.8h-.6l.1-.5H3.8L4 13.8L3 13.8L3.2 13H4l.2-.8h.8l-.2.8h.8l.2-.8h.8l-.2.8h.8l.4-2.4h.8l-.4 2.4h.8l.2-.8h.8l-.2.8h.8l.2-.8h.8l-.2.8h.8L12 11h.8l-.2.8h.8l.2-.8h.8l-.2.8h.8l.2-.8h.8l-.2.8h.8l.4-2.4h.8l-.4 2.4z" fill="white"/>
+                  <rect x="2" y="5" width="20" height="14" rx="2" stroke="white" strokeWidth="2"/>
                 </svg>
-                {/* Mastercard Icon */}
-                <svg width="24" height="15" viewBox="0 0 24 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-auto text-white">
-                  <circle cx="7.5" cy="7.5" r="7.5" fill="#EB001B"/>
-                  <circle cx="16.5" cy="7.5" r="7.5" fill="#F79E1B" fillOpacity="0.8"/>
+                <div className="flex -space-x-1">
+                  <div className="w-5 h-5 rounded-full border border-white/20 bg-white/10 flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-white/40" />
+                  </div>
+                  <div className="w-5 h-5 rounded-full border border-white/20 bg-white/10 flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-white/80" />
+                  </div>
+                </div>
+                <svg width="30" height="15" viewBox="0 0 30 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-auto">
+                  <path d="M12.4 1.5c-2.3 0-4.2 1.8-4.2 4s1.9 4 4.2 4 4.2-1.8 4.2-4-1.9-4-4.2-4zm0 6.5c-1.5 0-2.7-1.1-2.7-2.5s1.2-2.5 2.7-2.5 2.7 1.1 2.7 2.5-1.2 2.5-2.7 2.5z" fill="white"/>
+                  <path d="M22 15h1.5V0H22v15zm4.5 0H28l3-10h-1.5l-2.25 7.5L25 5h-1.5l3 10z" fill="white"/>
                 </svg>
-                {/* Apple Pay Icon */}
-                <svg width="36" height="15" viewBox="0 0 36 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-auto">
-                  <path d="M5.895 4.335c0-2.4 1.95-4.32 4.35-4.335 2.4-.015 4.35 1.905 4.35 4.32s-1.95 4.35-4.35 4.35c-2.4 0-4.35-1.935-4.35-4.335zm5.745 0c0-1.635-1.335-2.955-2.985-2.94a2.95 2.95 0 00-2.955 2.955c0 1.635 1.335 2.97 2.985 2.97a2.956 2.956 0 002.955-2.985z" fill="white"/>
-                  <path d="M20.25 15V0h1.41v15H20.25zM25.5 15l1.65-4.875h3.69L32.49 15h1.53l-4.14-11.895h-1.515L24.12 15h1.38zm1.965-5.91L28.98 4.5l1.515 4.59h-3.03z" fill="white"/>
-                </svg>
+              </div>
               </div>
               <div className="flex flex-col items-center gap-1.5">
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-full border border-white/5">
@@ -363,8 +370,37 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
           )}
 
           {!isSearchingVin && (
-            <div className="flex items-center justify-center gap-2 text-blue-200 text-sm mt-2 p-3 bg-blue-600/10 rounded-xl border border-blue-500/20">
-              Desbloqueie os dados oficiais europeus por <strong className="text-white"> 2,99€</strong>
+            <div className="flex flex-col gap-3 mt-2">
+              <div 
+                onClick={() => setSelectedProductId('autofill')}
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${
+                  selectedProductId === 'autofill' ? 'bg-blue-600/20 border-blue-500 shadow-lg scale-[1.02]' : 'bg-black/40 border-white/10 hover:border-white/20'
+                }`}
+              >
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-sm">Dados Simples (Cilindrada + CO2)</span>
+                  <span className="text-blue-400 text-xs font-medium">Preenchimento automático imediato</span>
+                </div>
+                <span className="text-white font-black text-lg">2,99€</span>
+              </div>
+
+              <div 
+                onClick={() => setSelectedProductId('fullpack')}
+                className={`relative p-5 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1 ${
+                  selectedProductId === 'fullpack' ? 'bg-amber-500/10 border-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.3)] scale-[1.02]' : 'bg-black/40 border-white/10 hover:border-white/20 opacity-80'
+                }`}
+              >
+                <div className="absolute -top-3 right-4 bg-[#d4af37] text-black text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                  <Sparkles size={10} /> MAIS POPULAR
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <span className="text-white font-black text-lg">PACK FULL</span>
+                    <span className="text-amber-200/80 text-[11px] font-bold">Dados + Relatório PDF Oficial + ISV Estimado</span>
+                  </div>
+                  <span className="text-white font-black text-2xl">7,49€</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -699,6 +735,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         availableProducts={['autofill', 'fullpack']}
+        directCheckoutProductId={selectedProductId}
         vin={vinQuery}
         onClose={() => setIsPaymentModalOpen(false)} 
         onSuccess={handlePaymentSuccess} 
