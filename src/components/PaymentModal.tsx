@@ -101,6 +101,16 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
   const [clientSecret, setClientSecret] = useState('');
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState('');
+  
+  // Use effect to handle scroll locking
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   // React hook to auto-initiate checkout if directCheckoutProductId is provided
   React.useEffect(() => {
@@ -165,7 +175,7 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       {/* Dark Blur Backdrop */}
       <div 
         className="absolute inset-0 bg-zinc-950/95 transition-opacity" 

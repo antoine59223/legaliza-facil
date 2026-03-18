@@ -22,7 +22,7 @@ function App() {
         {showSplash && <SplashScreen />}
       </AnimatePresence>
 
-      <div className="flex flex-col min-h-[100dvh] w-full items-center justify-center p-4 relative overflow-hidden bg-zinc-950">
+      <div className="flex flex-col min-h-[100dvh] w-full items-center relative bg-zinc-950 overflow-x-hidden custom-scrollbar">
         {/* Premium Background Effects */}
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-zinc-800/50 blur-[100px] rounded-full pointer-events-none" />
@@ -44,15 +44,14 @@ function App() {
 
         {/* Main Content Area */}
         <motion.main 
-          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 mt-16 mb-20 mx-auto"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: showSplash ? 0 : 1, scale: showSplash ? 0.95 : 1 }}
+          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 my-auto py-24 px-4 relative"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: showSplash ? 0 : 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
           <ErrorBoundary>
             <Wizard />
           </ErrorBoundary>
-
         </motion.main>
 
         {/* Global Disclaimer Footer */}
@@ -66,7 +65,6 @@ function App() {
             Aviso: Aplicação independente com fins meramente informativos. Não substitui a consulta dos canais oficiais da Autoridade Tributária.
           </p>
         </motion.footer>
-
       </div>
     </>
   );
