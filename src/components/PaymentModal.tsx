@@ -175,15 +175,19 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[110] overflow-y-auto overflow-x-hidden overscroll-none">
       {/* Dark Blur Backdrop */}
       <div 
-        className="absolute inset-0 bg-zinc-950/95 transition-opacity" 
-        onClick={closeAndReset} 
+        className="fixed inset-0 bg-zinc-950/95 transition-opacity pointer-events-none" 
       />
       
-      {/* Modal Content - Glassmorphism (Solid bg for iOS) */}
-      <div className={`relative bg-zinc-950 border border-white/10 rounded-3xl w-full ${clientSecret ? 'max-w-[420px]' : 'max-w-[700px]'} p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 transition-all isolation-isolate max-h-[calc(100vh-2rem)] overflow-y-auto custom-scrollbar`} style={{ isolation: 'isolate' }}>
+      {/* Scrollable Container */}
+      <div className="flex min-h-full items-start justify-center p-4 pt-12 pb-12 sm:pt-24 sm:pb-24 text-left">
+        {/* Backdrop click area for closing */}
+        <div className="absolute inset-0" onClick={closeAndReset} />
+        
+        {/* Modal Content - Glassmorphism (Solid bg for iOS) */}
+        <div className={`relative bg-zinc-950 border border-white/10 rounded-3xl w-full ${clientSecret ? 'max-w-[420px]' : 'max-w-[700px]'} p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 transition-all isolation-isolate z-10`} style={{ isolation: 'isolate' }}>
         
         {/* Decorative Glow */}
         <div className="absolute -top-20 -right-20 w-48 h-48 bg-blue-600/20 blur-[60px] rounded-full pointer-events-none" />
@@ -341,6 +345,7 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
           </div>
         )}
 
+        </div>
       </div>
     </div>
   );
