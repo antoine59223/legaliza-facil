@@ -183,7 +183,7 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
       />
       
       {/* Modal Content - Glassmorphism (Solid bg for iOS) */}
-      <div className={`relative bg-zinc-950 border border-white/10 rounded-3xl w-full ${clientSecret ? 'max-w-[420px]' : 'max-w-[700px]'} p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 transition-all isolation-isolate`} style={{ isolation: 'isolate' }}>
+      <div className={`relative bg-zinc-950 border border-white/10 rounded-3xl w-full ${clientSecret ? 'max-w-[420px]' : 'max-w-[700px]'} p-6 md:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 transition-all isolation-isolate max-h-[calc(100vh-2rem)] overflow-y-auto custom-scrollbar`} style={{ isolation: 'isolate' }}>
         
         {/* Decorative Glow */}
         <div className="absolute -top-20 -right-20 w-48 h-48 bg-blue-600/20 blur-[60px] rounded-full pointer-events-none" />
