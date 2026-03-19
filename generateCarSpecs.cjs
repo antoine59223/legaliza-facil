@@ -232,14 +232,53 @@ export const carSpecsDB: CarSpec[] = ${JSON.stringify(finalDB, null, 2).replace(
  */
 export function lookupCarSpec(brand: string, model: string, year: string): CarSpec[] {
   const b = brand.toLowerCase().trim();
-  const m = model.toLowerCase().replace(/[-\\s]+/g, '');
+  const rawM = model.toLowerCase();
+  const m = rawM.replace(/[-\\s]+/g, '');
   const y = parseInt(year);
 
-  // Filter possible models
-  const allForModel = carSpecsDB.filter(car => 
-    car.brand.toLowerCase() === b && 
-    car.model.toLowerCase().replace(/[-\\s]+/g, '') === m
-  );
+  // Filter possible models by brand first
+  const brandCars = carSpecsDB.filter(car => car.brand.toLowerCase() === b);
+  if (brandCars.length === 0) return [];
+
+  // Try exact match first
+  let allForModel = brandCars.filter(car => car.model.toLowerCase().replace(/[-\\s]+/g, '') === m);
+
+  // If exact match fails (e.g., API returns "IBIZA DIESEL" but DB has "Ibiza"), use fuzzy word-matching
+  if (allForModel.length === 0) {
+    const apiWords = rawM.split(/[-\\s]+/);
+    let bestScore = 0;
+    
+    brandCars.forEach(car => {
+      const dbWords = car.model.toLowerCase().split(/[-\\s]+/);
+      let score = 0;
+      apiWords.forEach(word => {
+        if (dbWords.includes(word)) score++;
+      });
+      
+      if (score > 0) {
+        if (score > bestScore) {
+          bestScore = score;
+          allForModel = [car];
+        } else if (score === bestScore) {
+          allForModel.push(car);
+        }
+      }
+    });
+
+    // If word-match completely fails, try direct substring inclusion
+    if (allForModel.length === 0) {
+      allForModel = brandCars.filter(car => {
+        const dbM = car.model.toLowerCase();
+        return rawM.includes(dbM) || dbM.includes(rawM);
+      });
+    }
+
+    // Isolate pure duplicates by model name to pick the most concise base model (e.g. choose "A4" over "A4 Avant" if tied)
+    if (allForModel.length > 0) {
+      const minLen = Math.min(...allForModel.map(c => c.model.length));
+      allForModel = allForModel.filter(c => c.model.length === minLen);
+    }
+  }
 
   if (allForModel.length === 0) return [];
 
