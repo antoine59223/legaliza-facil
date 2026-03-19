@@ -44,7 +44,7 @@ function App() {
 
         {/* Main Content Area */}
         <motion.main 
-          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 pt-32 pb-16 px-4 relative flex-grow"
+          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 pt-32 pb-8 px-4 relative flex-grow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: showSplash ? 0 : 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -56,7 +56,7 @@ function App() {
 
         {/* Global Disclaimer Footer */}
         <motion.footer
-          className="absolute bottom-4 w-full flex justify-center px-6 z-10"
+          className="w-full flex justify-center px-6 z-10 mt-auto pb-12 pt-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: showSplash ? 0 : 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
