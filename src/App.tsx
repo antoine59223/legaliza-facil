@@ -44,7 +44,7 @@ function App() {
 
         {/* Main Content Area */}
         <motion.main 
-          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 my-auto py-24 px-4 relative"
+          className="w-full max-w-md md:max-w-lg lg:max-w-xl z-10 flex flex-col gap-6 pt-32 pb-16 px-4 relative flex-grow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: showSplash ? 0 : 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
