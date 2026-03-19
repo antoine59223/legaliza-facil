@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { X, Loader2, ShieldCheck, Check, Sparkles } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
@@ -102,7 +103,6 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState('');
   
-  // Use effect to handle scroll locking
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -112,7 +112,6 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  // React hook to auto-initiate checkout if directCheckoutProductId is provided
   React.useEffect(() => {
     if (isOpen && directCheckoutProductId && !clientSecret && !isInitializing && !error) {
       handleSelectPlan(directCheckoutProductId);
@@ -158,7 +157,6 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
     if (selectedProduct) {
       onSuccess(paymentIntentId, selectedProduct);
     }
-    // Clean up internal state on success so it's fresh next time
     setTimeout(() => {
       setSelectedProduct(null);
       setClientSecret('');
@@ -174,7 +172,7 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
     }, 300);
   };
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[110] overflow-y-auto overflow-x-hidden overscroll-none">
       {/* Dark Blur Backdrop */}
       <div 
@@ -344,9 +342,10 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
             </Elements>
           </div>
         )}
-
-        </div>
       </div>
     </div>
-  );
+  </div>
+);
+
+  return createPortal(modalContent, document.body);
 }

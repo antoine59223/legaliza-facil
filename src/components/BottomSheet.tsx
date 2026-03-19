@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -57,4 +58,6 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }
