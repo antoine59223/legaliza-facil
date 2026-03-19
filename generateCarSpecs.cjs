@@ -298,25 +298,47 @@ export function lookupCarSpec(brand: string, model: string, year: string): CarSp
 /**
  * Robust CO2 lookup helper.
  */
-export function lookupCO2(brand: string, model: string, year: string, fuelType: string): string {
+export function lookupCO2(brand: string, model: string, year: string, fuelType: string, engineCapacity?: string): string {
   const specs = lookupCarSpec(brand, model, year);
   if (!specs.length) return '';
 
   const ft = fuelType.toLowerCase();
   
   // Try exact fuel match first
-  let match = specs.find(s => s.fuelType.toLowerCase() === ft);
+  let matches = specs.filter(s => s.fuelType.toLowerCase() === ft);
 
   // Fuzzy fuel match
-  if (!match) {
-    if (ft.includes('plug') || ft.includes('phev')) match = specs.find(s => s.fuelType.toLowerCase().includes('plug'));
-    else if (ft.includes('híbrido') || ft.includes('hybrid') || ft.includes('hibrido')) match = specs.find(s => s.fuelType.toLowerCase().includes('híbrido'));
-    else if (ft.includes('gasolina') || ft.includes('petrol')) match = specs.find(s => s.fuelType === 'Gasolina');
-    else if (ft.includes('gasóleo') || ft.includes('diesel')) match = specs.find(s => s.fuelType === 'Gasóleo');
-    else if (ft.includes('elétr') || ft.includes('elect')) match = specs.find(s => s.fuelType === 'Elétrico');
+  if (!matches.length) {
+    if (ft.includes('plug') || ft.includes('phev')) matches = specs.filter(s => s.fuelType.toLowerCase().includes('plug'));
+    else if (ft.includes('híbrido') || ft.includes('hybrid') || ft.includes('hibrido')) matches = specs.filter(s => s.fuelType.toLowerCase().includes('híbrido'));
+    else if (ft.includes('gasolina') || ft.includes('petrol')) matches = specs.filter(s => s.fuelType === 'Gasolina');
+    else if (ft.includes('gasóleo') || ft.includes('diesel')) matches = specs.filter(s => s.fuelType === 'Gasóleo');
+    else if (ft.includes('elétr') || ft.includes('elect')) matches = specs.filter(s => s.fuelType === 'Elétrico');
   }
 
-  return match?.co2 || '';
+  if (!matches.length) return '';
+
+  // If we have an engine capacity from the API, try to find the EXACT engine match
+  if (engineCapacity) {
+    const targetCc = parseInt(engineCapacity);
+    if (!isNaN(targetCc)) {
+      let closestMatch = matches[0];
+      let minDiff = Infinity;
+      for (const m of matches) {
+         const mCc = parseInt(m.engineCapacity);
+         if (!isNaN(mCc)) {
+           const diff = Math.abs(mCc - targetCc);
+           if (diff < minDiff) {
+              minDiff = diff;
+              closestMatch = m;
+           }
+         }
+      }
+      return closestMatch.co2;
+    }
+  }
+
+  return matches[0]?.co2 || '';
 }
 `;
 

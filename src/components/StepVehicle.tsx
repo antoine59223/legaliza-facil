@@ -141,7 +141,7 @@ export default function StepVehicle({ data, updateData, onNext }: StepProps) {
       }
 
       // CO2 fallback: if RegCheck didn't return CO2, look it up in our local spec database
-      const co2Value = rawCo2 || lookupCO2(rawMake, rawModel, rawYear, finalFuelType);
+      const co2Value = rawCo2 || lookupCO2(rawMake, rawModel, rawYear, finalFuelType, finalEngineCapacity);
 
       updateData({
         brand: rawMake,
