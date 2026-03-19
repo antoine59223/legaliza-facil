@@ -180,7 +180,7 @@ export default function PaymentModal({ vin, isOpen, availableProducts, directChe
       />
       
       {/* Scrollable Container */}
-      <div className="flex min-h-full items-start justify-center p-4 pt-12 pb-12 sm:pt-24 sm:pb-24 text-left">
+      <div className="flex min-h-full items-start justify-center p-4 pt-12 pb-[50vh] sm:pt-24 sm:pb-32 text-left">
         {/* Backdrop click area for closing */}
         <div className="absolute inset-0" onClick={closeAndReset} />
         
