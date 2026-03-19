@@ -31,20 +31,27 @@ export default function BottomSheet({ isOpen, onClose, title, children }: Bottom
             className="fixed inset-0 z-[100] bg-zinc-950/95"
           />
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 z-[101] bg-zinc-900 border-t border-white/10 shadow-2xl rounded-t-3xl p-6 pb-12 max-h-[85vh] overflow-y-auto safe-area-bottom will-change-transform"
+            initial={{ scale: 0.9, x: '-50%', y: '-45%', opacity: 0 }}
+            animate={{ scale: 1, x: '-50%', y: '-50%', opacity: 1 }}
+            exit={{ scale: 0.9, x: '-50%', y: '-45%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed top-1/2 left-1/2 z-[101] bg-zinc-900 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-2xl w-[95%] max-w-[500px] max-h-[75vh] flex flex-col overflow-hidden will-change-transform"
           >
-            <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{title}</h2>
-              <button onClick={onClose} className="p-2 rounded-full glass-button text-zinc-400 hover:text-white">
-                <X size={20} />
-              </button>
+            {/* Header / Grabber area */}
+            <div className="p-6 pb-0">
+              <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-white">{title}</h2>
+                <button onClick={onClose} className="p-2 rounded-full glass-button text-zinc-400 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            {children}
+
+            {/* Internal Scrollable Content */}
+            <div className="overflow-y-auto flex-grow px-6 pb-8 custom-scrollbar scroll-smooth selection-list-content">
+              {children}
+            </div>
           </motion.div>
         </>
       )}
